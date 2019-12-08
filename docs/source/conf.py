@@ -19,12 +19,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'ITUCSDB18NN'
-copyright = '2018, ITUCSDB18NN'
-author = 'ITUCSDB18NN'
+project = 'UpcomingEventsPlatform'
+copyright = '2019, UpcomingEventsPlatform'
+author = 'UpcomingEventsPlatformTeam'
 
 # The short X.Y version
-version = ''
+version = '1.0'
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -102,7 +102,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ITUCSDB18NNdoc'
+htmlhelp_basename = 'UpcomingEventsPlatformdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -129,8 +129,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ITUCSDB18NN.tex', 'ITUCSDB18NN Documentation',
-     'ITUCSDB18NN', 'manual'),
+    (master_doc, 'UpcomingEventsPlatform.tex', 'UpcomingEventsPlatform Documentation',
+     'UpcomingEventsPlatform', 'manual'),
 ]
 
 
@@ -139,7 +139,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'itucsdb18nn', 'ITUCSDB18NN Documentation',
+    (master_doc, 'UpcomingEventsPlatform', 'UpcomingEventsPlatform Documentation',
      [author], 1)
 ]
 
@@ -150,8 +150,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ITUCSDB18NN', 'ITUCSDB18NN Documentation',
-     author, 'ITUCSDB18NN', 'One line description of project.',
+    (master_doc, 'UpcomingEventsPlatform', 'UpcomingEventsPlatform Documentation',
+     author, 'UpcomingEventsPlatform', 'One line description of project.',
      'Miscellaneous'),
 ]
 

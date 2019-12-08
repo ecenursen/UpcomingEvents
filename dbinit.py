@@ -24,3 +24,9 @@ if __name__ == "__main__":
         print("Usage: DATABASE_URL=url python dbinit.py", file=sys.stderr)
         sys.exit(1)
     initialize(url)
+
+def drop_table(url):
+    with dbapi2.connect(url) as connection:
+        cursor = connection.cursor()
+        cursor.execute("DROP SCHEMA public CASCADE;CREATE SCHEMA public;")
+        cursor.close()
