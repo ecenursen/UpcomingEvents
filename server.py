@@ -21,4 +21,8 @@ def home_page():
 
 
 if __name__ == "__main__":
-    app.run()
+    if(DEBUG):
+		app.run(debug='True')
+	else:
+		app.run()
+
