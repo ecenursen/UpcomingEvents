@@ -8,9 +8,19 @@ from scrapy.selector import Selector
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
 
+class ScraperItem(Item):
+    name = Field()
+    url = Field()
+    date = Field()
+    location = Field()
+    city = Field()
+    image = Field()
+    date = Field()
+    type_ = Field()
+    description = Field()
 
-class BiletiniAlScraper(Spider):
-	name = "BiletiniAlScraper"
+class BiletiniAl(Spider):
+	name = "BiletiniAl"
 	allowed_domains = ["biletinial.com"]
 	start_urls = ["https://www.biletinial.com/muzik",
 				  "https://biletinial.com/egitim", "https://biletinial.com/tiyatro",
@@ -19,8 +29,8 @@ class BiletiniAlScraper(Spider):
 	def parse(self, response):
 		events = Selector(response).xpath(
 			'/html/body/div[1]/div/div[2]/div/div[2]/div/div[2]/div/div')
-		print("BiletiniAlScraper runs...")
-		'''
+		print("BiletiniAl runs...")
+		
 		for event in events:
 			item = ScraperItem()
 			item['name'] = event.xpath(
@@ -49,11 +59,11 @@ class BiletiniAlScraper(Spider):
 		line = json.dumps(dict(item), ensure_ascii=False) + "\n"
 		f.write(line)
 		yield item
-		'''
+		
 
 
-class CRRScraper(Spider):
-	name = "CRRScraper"
+class CemalResitRey(Spider):
+	name = "CemalResitRey"
 	allowed_domains = ["crrkonsersalonu.ibb.istanbul"]
 	start_date = time.strftime("%d.%m.%y")
 	end_date = (datetime.datetime.now() + datetime.timedelta(100)
@@ -66,8 +76,8 @@ class CRRScraper(Spider):
 
 		events = Selector(response).xpath(
 			'/html/body/div[2]/div/div[3]/div/div[3]/div')
-		print("CRRScraper runs...")
-		'''
+		print("CemalResitRey runs...")
+		
 		for event in events:
 			item = ScraperItem()
 			item['date'] = event.xpath(
@@ -86,8 +96,34 @@ class CRRScraper(Spider):
 			line = json.dumps(dict(item), ensure_ascii=False) + "\n"
 			f.write(line)
 			yield item
-		'''
+		
+class BaskaSinema(Spider):
 
+    name = "BaskaSinemaScraper"
+    allowed_domains = ["baskasinema.com"]
+    start_urls = ["http://www.baskasinema.com/gelecek-filmler/", ]
+
+    def parse(self, response):
+        events = Selector(response).xpath(
+            '/html/body/div[2]/div[2]/div/div/div[2]/div[2]/div')
+		print("BaskaSinema runs...")
+        for event in events:
+            item = ScraperItem()
+            item['date'] = event.xpath(
+                'div[@class="movie_info_box"]/div[@class="movie_info"]/strong/text()').extract()[0]
+            item['name'] = event.xpath(
+                'div[@class="movie_info_box"]/h2/span/text()').extract()[0]
+            item['type_'] = "Sinema"
+            item['image'] = event.xpath('div/a/img/@src').extract()[0]
+            item['url'] = event.xpath('div/a/@href').extract()[0]
+            item['location'] = ""
+            item['city'] = ""
+            item['description'] = ' '.join(s.strip().translate(trans_table)
+                                           for s in event.xpath('div[@class="movie_info_box"]/div[@class="movie_info"]//text()').extract())
+            global f
+            line = json.dumps(dict(item), ensure_ascii=False) + ",\n"
+            f.write(line)
+            yield item
 
 def sleep(_, duration=60):
 	print(f'sleeping for: {duration}')
@@ -95,10 +131,9 @@ def sleep(_, duration=60):
 
 
 def crawl(runner):
-	print("Biletini al")
-	runner.crawl(BiletiniAlScraper)
-	print("CRR")
-	runner.crawl(CRRScraper)
+	runner.crawl(BiletiniAl)
+	runner.crawl(CemalResitRey)
+	runner.crawl(BaskaSinema)
 	d = runner.join()
 	d.addBoth(sleep)
 	d.addBoth(lambda _: crawl(runner))
