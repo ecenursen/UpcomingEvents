@@ -4,8 +4,9 @@ from dbinit import initialize,drop_table
 import psycopg2 as db
 import json
 from datetime import datetime,timedelta
+from url_getter import *
+from db_cursor import select,insert,update,delete
 
-DEBUG = False
 
 class return_query(dict):
 
@@ -20,35 +21,23 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = ''
 
 def add_admin(username,password):
-	message = {}
-	connection = db.connect(url)
-	cursor = connection.cursor()
-	statement = """INSERT INTO ADMIN (USERNAME,PASSWORD) VALUES (
-			""" +"CAST("+str(username)+" AS VARCHAR)""" + """,
-			""" +"CAST('"+ str(password)+"' AS VARCHAR) """ + """
-		);
-		"""
-	cursor.execute(statement)
-	connection.commit()
-	cursor.close()
-	message["result"] = 1
-	message["message"] = "add_admin success"
-	json_message = json.dumps(message)
-	return json_message
+	result = insert("ADMIN","USERNAME,PASSWORD","CAST("+str(username)+" AS VARCHAR)""" + """,
+			""" +"CAST('"+ str(password)+"' AS VARCHAR) """)
+	return result
 	
 
-def add_event_review(name,city,location,date,text,image,url,org_id):
+def add_event_review(name,city,location,date,ticket_url,text,image,org_id):
 	message = {}
-	connection = db.connect(url)
+	connection = db.connect(give_url)
 	cursor = connection.cursor()
 	statement = """INSERT INTO EVENT (NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID) VALUES (
 			""" +"CAST('"+str(name)+"' AS VARCHAR)" + """,
 			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
 			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
 			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
-			""" +"CAST("+str(text)+" AS VARCHAR)""" + """,
+			""" +"CAST('"+str(text)+" 'AS VARCHAR)""" + """,
 			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(url)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """,
 			""" +"CAST('"+ str(org_id)+"' AS INTEGER) """ + """
 		);
 		"""
@@ -62,7 +51,7 @@ def add_event_review(name,city,location,date,text,image,url,org_id):
 
 def add_organizer_review(name,mail,address,username,password):
 	message = {}
-	connection = db.connect(url)
+	connection = db.connect(give_url)
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER_REVIEW (NAME,MAIL,ADDRESS,USERNAME,PASSWORD) VALUES (
 			""" +"CAST("+str(name)+" AS VARCHAR)""" + """,
@@ -82,7 +71,7 @@ def add_organizer_review(name,mail,address,username,password):
 
 def add_organizer(name,mail,address):
 	message = {}
-	connection = db.connect(url)
+	connection = db.connect(give_url)
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER (NAME,MAIL,ADDRESS) VALUES (
 			""" +"CAST('"+str(name)+"' AS VARCHAR)""" + """,
@@ -100,7 +89,7 @@ def add_organizer(name,mail,address):
 
 def add_organizer_login(org_id,username,password):
 	message = {}
-	connection = db.connect(url)
+	connection = db.connect(give_url)
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER_LOGIN(USERNAME,PASSWORD,ORGANIZER_ID) VALUES (
 			""" +"CAST('"+str(username)+"' AS VARCHAR)""" + """,
@@ -128,40 +117,31 @@ def create_event():
 	org_id = request.form['org_id']
 	return add_event(name,city,location,date,text,image,ticket_url,org_id)
 
+def add_scrapped(myjson):
+	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["text"],myjson["image"])
+	print("scrapped",query)
+	return 0
+
 def add_event(name,city,location,date,ticket_url,text="",image="",org_id=""):
-	message = {}
-	connection = db.connect(url)
-	cursor = connection.cursor()
-	if(org_id != None):
-		statement = """INSERT INTO EVENT (NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID) VALUES (
-			""" +"CAST('"+str(name)+"' AS VARCHAR)" + """,
-			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
-			""" +"CAST("+str(text)+" AS VARCHAR)""" + """,
-			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(org_id)+"' AS INTEGER) """ + """
-		);
-		"""       
-	else:
-		statement = """INSERT INTO EVENT (NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL) VALUES (
-			""" +"CAST('"+str(name)+"' AS VARCHAR)" + """,
+	if(org_id == ""):
+		result =insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL","CAST('"+str(name)+"' AS VARCHAR)" + """,
 			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
 			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
 			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
 			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
 			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """
-		);
-		"""
-	cursor.execute(statement)
-	connection.commit()
-	cursor.close()
-	message["result"] = 1
-	message["message"] = "add_event success"
-	json_message = json.dumps(message)
-	return json_message
+			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """)
+	else:
+		result = insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID","CAST('"+str(name)+"' AS VARCHAR)" + """,
+			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
+			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
+			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(org_id)+"' AS INTEGER) """)
+	print("ADD EVENT:",result)
+	return result
 
 @app.route('/api/event_review',methods=['GET'])
 def read_event_review():
@@ -264,12 +244,6 @@ def read_organizers_event(org_id):
 	return jsonify(query)
 
 
-if(DEBUG == False):
-	url = os.getenv("DATABASE_URL")
-else:
-	url = "dbname='upcoming-events-platform' user='postgres' host='localhost' password='softeng2019'"
-	initialize(url)
-	# drop_table(url)
 
 @app.route("/")
 def home_page():
@@ -279,14 +253,14 @@ def home_page():
 			'key':i,
 			'value':i*24
 		})
-		madate = datetime.now() + timedelta(days = 3)
+		madate = datetime.now() - timedelta(days = 0)
 		queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
-		queryr = add_event("deneme1","NY","MET MUSEUM",madate.date(),"jjnjn","sdfsd.jpg","http.sdgsg.com",None)
-		print(queryr)
-	return read_event(100)
+		add_event("hobaa","NY","MAGNOLIA PUDDING",madate.date(),"http.sdgsg.com","jjnjn","sdfsd.jpg") 
+	return read_event(1000)
 
 if __name__ == "__main__":
-	if(DEBUG):
+	if(give_debug_status):
+		initialize(give_url)
 		app.run(debug='True')
 	else:
 		app.run()
