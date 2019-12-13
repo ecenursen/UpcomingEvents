@@ -89,7 +89,9 @@ def sleep(_,duration = 60):
 	time.sleep(duration)
 
 def crawl(runner):
+	print("Biletini al")
 	runner.crawl(BiletiniAlScraper)
+	print("CRR")
 	runner.crawl(CRRScraper)
 	d = runner.join()
 	d.addBoth(sleep)
@@ -98,8 +100,10 @@ def crawl(runner):
 
 def loop_crawl():
 	runner = CrawlerRunner(get_project_settings())
+	print("Runner initialized")
 	crawl(runner)
 	reactor.run()
 
 if __name__ == "__main__":
+	print("Scraper test begins...")
 	loop_crawl()
