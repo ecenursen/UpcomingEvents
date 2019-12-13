@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
+import os,sys
 
 import psycopg2 as db
 from flask import flash
-from url_getter import give_url
 
 
 def select(columns, table, where=None):
@@ -36,7 +35,7 @@ def run(query):
     connection = None
     result = None
     try:
-        connection = db.connect(give_url)
+        connection = db.connect(os.environ.get('DATABASE_URL'))
         cursor = connection.cursor()
         cursor.execute(query)
         print("db cursor")

@@ -4,9 +4,9 @@ from dbinit import initialize,drop_table
 import psycopg2 as db
 import json
 from datetime import datetime,timedelta
-from url_getter import *
 from db_cursor import select,insert,update,delete
 
+DEBUG = False
 
 class return_query(dict):
 
@@ -28,7 +28,7 @@ def add_admin(username,password):
 
 def add_event_review(name,city,location,date,ticket_url,text,image,org_id):
 	message = {}
-	connection = db.connect(give_url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """INSERT INTO EVENT (NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID) VALUES (
 			""" +"CAST('"+str(name)+"' AS VARCHAR)" + """,
@@ -51,7 +51,7 @@ def add_event_review(name,city,location,date,ticket_url,text,image,org_id):
 
 def add_organizer_review(name,mail,address,username,password):
 	message = {}
-	connection = db.connect(give_url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER_REVIEW (NAME,MAIL,ADDRESS,USERNAME,PASSWORD) VALUES (
 			""" +"CAST("+str(name)+" AS VARCHAR)""" + """,
@@ -71,7 +71,7 @@ def add_organizer_review(name,mail,address,username,password):
 
 def add_organizer(name,mail,address):
 	message = {}
-	connection = db.connect(give_url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER (NAME,MAIL,ADDRESS) VALUES (
 			""" +"CAST('"+str(name)+"' AS VARCHAR)""" + """,
@@ -89,7 +89,7 @@ def add_organizer(name,mail,address):
 
 def add_organizer_login(org_id,username,password):
 	message = {}
-	connection = db.connect(give_url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """INSERT INTO ORGANIZER_LOGIN(USERNAME,PASSWORD,ORGANIZER_ID) VALUES (
 			""" +"CAST('"+str(username)+"' AS VARCHAR)""" + """,
@@ -147,7 +147,7 @@ def add_event(name,city,location,date,ticket_url,text="",image="",org_id=""):
 def read_event_review():
 	print("read event review")
 	query = return_query()
-	connection = db.connect(url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """ SELECT * FROM EVENT_REVIEW
 		ORDER BY TIME ASC"""
@@ -172,7 +172,7 @@ def read_event_review():
 def read_organizer_review():
 	print("read organizer review")
 	query = return_query()
-	connection = db.connect(url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	statement = """SELECT * FROM ORGANIZER_REVIEW"""
 	cursor.execute(statement)
@@ -192,7 +192,7 @@ def read_event(many):
 	print("read event")
 	print(type(many))
 	query = return_query()
-	connection = db.connect(url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	date = datetime.now().date()
 	statement = """ SELECT * FROM EVENT
@@ -219,7 +219,7 @@ def read_event(many):
 def read_organizers_event(org_id):
 	print("read ORGANIZERS' event")
 	query = return_query()
-	connection = db.connect(url)
+	connection = db.connect(os.environ.get('DATABASE_URL'))
 	cursor = connection.cursor()
 	date = datetime.now().date()
 	statement = """ SELECT * FROM EVENT
@@ -258,9 +258,12 @@ def home_page():
 		add_event("hobaa","NY","MAGNOLIA PUDDING",madate.date(),"http.sdgsg.com","jjnjn","sdfsd.jpg") 
 	return read_event(1000)
 
+if(DEBUG == True):
+	os.environ['DATABASE_URL'] = "dbname='upcoming-events-platform' user='postgres' host='localhost' password='softeng2019'"
+	initialize(os.environ.get('DATABASE_URL'))
+
 if __name__ == "__main__":
-	if(give_debug_status):
-		initialize(give_url)
+	if(DEBUG):
 		app.run(debug='True')
 	else:
 		app.run()
