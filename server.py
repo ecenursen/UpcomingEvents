@@ -288,8 +288,10 @@ def home_page():
 @app.route("/crawlerTest")
 def crawlerTest():
 	from scraperTest import scrape
+	import threading
 	try:
-		scrape()
+		x = threading.Thread(target=scrape,args= (1,))
+		x.start()
 	except:
 		return "Failure"	
 	return "Success"

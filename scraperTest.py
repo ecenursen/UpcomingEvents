@@ -1,7 +1,7 @@
 from scrapy import Spider
 from scrapy.crawler import CrawlerProcess
 from scrapy.selector import Selector
-
+import time
 
 class ScraperTest(Spider):
     name = "ScraperTest"
@@ -16,10 +16,18 @@ class ScraperTest(Spider):
                 'a/div[@class="event-title"]/text()').extract()[0])
 
 
-def scrape():
-    print("Crawling process is starting...")
+def scrape(name):
+    print("Crawling process {} is starting...".format(name))
     process = CrawlerProcess()
     process.crawl(ScraperTest)
     print("Crawler attached...")
     process.start()
     print("Crawler finished...")
+
+def regularScrape(name):
+    print("Regular scraping is beginning...")
+    start = time.time()
+    counter = 0
+    while(True):
+        if(time.time() - start > 30):
+            scrape(counter)
