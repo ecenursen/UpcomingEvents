@@ -5,6 +5,8 @@ import psycopg2 as db
 import json
 from datetime import datetime,timedelta
 
+DEBUG = False
+
 class return_query(dict):
 
     def __init__ (self):
@@ -261,7 +263,7 @@ def read_organizers_event(org_id):
     cursor.close()
     return jsonify(query)
 
-DEBUG = True
+
 if(DEBUG == False):
 	url = os.getenv("DATABASE_URL")
 else:
