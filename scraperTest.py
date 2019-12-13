@@ -9,7 +9,7 @@ from scrapy.item import Field, Item
 from scrapy.selector import Selector
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
-
+from server import add_scrapped
 trans_table = {ord(c): None for c in u'\r\n\t'}
 
 
@@ -62,6 +62,7 @@ class BiletiniAl(Spider):
 		item['description'] = ' '.join(s.strip().translate(
 			trans_table) for s in page.xpath('//*[@id="movie-detail"]//p/text()').extract())
 		# TODO:: CREATE ITEM API CONNECTION
+		print(add_scrapped(json.dumps(dict(item), ensure_ascii=False)))
 		yield item
 
 
@@ -94,6 +95,7 @@ class CemalResitRey(Spider):
 			item['location'] = 'Cemal Reşit Rey'
 			item['city'] = 'İstanbul'
 			item['description'] = ""
+			print(add_scrapped(json.dumps(dict(item), ensure_ascii=False)))
 			yield item
 
 
@@ -120,6 +122,7 @@ class BaskaSinema(Spider):
 			item['city'] = ""
 			item['description'] = ' '.join(s.strip().translate(trans_table)
 										   for s in event.xpath('div[@class="movie_info_box"]/div[@class="movie_info"]//text()').extract())
+			print(add_scrapped(json.dumps(dict(item), ensure_ascii=False)))
 			yield item
 
 
