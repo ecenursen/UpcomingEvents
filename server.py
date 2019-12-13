@@ -285,17 +285,6 @@ def home_page():
 		print(queryr)
 	return read_event(100)
 
-@app.route("/crawlerTest")
-def crawlerTest():
-	from scraperTest import scrape
-	import threading
-	try:
-		x = threading.Thread(target=scrape,args= (1,))
-		x.start()
-	except:
-		return "Failure"	
-	return "Success"
-
 if __name__ == "__main__":
 	if(DEBUG):
 		app.run(debug='True')

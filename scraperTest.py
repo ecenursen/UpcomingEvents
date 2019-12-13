@@ -24,7 +24,8 @@ def scrape(name):
     process.start()
     print("Crawler finished...")
 
-def regularScrape(name):
+
+if __name__ == "__main__":
     print("Regular scraping is beginning...")
     start = time.time()
     counter = 0
