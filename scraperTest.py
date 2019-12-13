@@ -31,11 +31,10 @@ def crawl(runner):
 	d.addBoth(lambda _: crawl(runner))
 	return d
 
-def loop_crawl(name):
+def loop_crawl():
 	runner = CrawlerRunner(get_project_settings())
 	crawl(runner)
 	reactor.run()
 
 if __name__ == "__main__":
-	x = threading.Thread(target=loop_crawl,args=(1,))
-	x.start()
+	loop_crawl()
