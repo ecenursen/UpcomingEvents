@@ -1,7 +1,7 @@
 import os,sys
 import psycopg2 as db
 
-DEBUG = True
+DEBUG = False
 def give_url():
     if(DEBUG == False):
 	    return os.getenv("DATABASE_URL")
