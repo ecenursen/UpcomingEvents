@@ -37,5 +37,5 @@ def loop_crawl(name):
 	reactor.run()
 
 if __name__ == "__main__":
-	x = threading.Thread(target=loop_crawl(),args=(1,))
+	x = threading.Thread(target=loop_crawl,args=(1,))
 	x.start()
