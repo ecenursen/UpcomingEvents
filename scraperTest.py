@@ -3,6 +3,7 @@ from scrapy.crawler import CrawlerProcess,CrawlerRunner
 from scrapy.selector import Selector
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
+import threading
 import time
 global crawlerProcessStarted
 crawlerProcessStarted = False
@@ -30,10 +31,11 @@ def crawl(runner):
 	d.addBoth(lambda _: crawl(runner))
 	return d
 
-def loop_crawl():
+def loop_crawl(name):
 	runner = CrawlerRunner(get_project_settings())
 	crawl(runner)
 	reactor.run()
 
 if __name__ == "__main__":
-	loop_crawl()
+	x = threading.Thread(target=loop_crawl(),args=(1,))
+	x.start()
