@@ -20,12 +20,42 @@ class return_query(dict):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = ''
 
+def add_scrapped(myjson):
+	print("__add scrapped called__")
+	print(myjson)
+	print("NAME:",myjson["name"])
+	print("DATE:",myjson["date"])
+	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["description"],myjson["image"])
+	print("scrapped",query)
+	return 0
+
+def add_event(name,city,location,date,ticket_url,text="",image="",org_id=""):
+	print("NOW IN ADD EVENT")
+	if(org_id == ""):
+		result =insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL","CAST('"+str(name)+"' AS VARCHAR)" + """,
+			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
+			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
+			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """)
+	else:
+		result = insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID","CAST('"+str(name)+"' AS VARCHAR)" + """,
+			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
+			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
+			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """,
+			""" +"CAST('"+ str(org_id)+"' AS INTEGER) """)
+	print("ADD EVENT:",result)
+	return result
+
 def add_admin(username,password):
 	result = insert("ADMIN","USERNAME,PASSWORD","CAST("+str(username)+" AS VARCHAR)""" + """,
 			""" +"CAST('"+ str(password)+"' AS VARCHAR) """)
 	return result
 	
-
 def add_event_review(name,city,location,date,ticket_url,text,image,org_id):
 	message = {}
 	connection = db.connect(os.environ.get('DATABASE_URL'))
@@ -117,36 +147,6 @@ def create_event():
 	org_id = request.form['org_id']
 	return add_event(name,city,location,date,text,image,ticket_url,org_id)
 
-def add_scrapped(myjson):
-	print("__add scrapped called__")
-	print(myjson)
-	print("NAME:",myjson["name"])
-	print("DATE:",myjson["date"])
-	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["description"],myjson["image"])
-	print("scrapped",query)
-	return 0
-
-def add_event(name,city,location,date,ticket_url,text="",image="",org_id=""):
-	print("NOW IN ADD EVENT")
-	if(org_id == ""):
-		result =insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL","CAST('"+str(name)+"' AS VARCHAR)" + """,
-			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
-			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
-			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """)
-	else:
-		result = insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL,ORGANIZER_ID","CAST('"+str(name)+"' AS VARCHAR)" + """,
-			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(location)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+str(date)+"' AS DATE)""" + """,
-			""" +"CAST('"+str(text)+"' AS VARCHAR)""" + """,
-			""" +"CAST('"+ str(image)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(ticket_url)+"' AS VARCHAR) """ + """,
-			""" +"CAST('"+ str(org_id)+"' AS INTEGER) """)
-	print("ADD EVENT:",result)
-	return result
 
 @app.route('/api/event_review',methods=['GET'])
 def read_event_review():
