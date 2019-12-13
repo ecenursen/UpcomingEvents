@@ -1,3 +1,4 @@
+import datetime
 import threading
 import time
 
@@ -49,6 +50,8 @@ class BiletiniAlScraper(Spider):
 		f.write(line)
 		yield item
 		'''
+
+
 class CRRScraper(Spider):
 	name = "CRRScraper"
 	allowed_domains = ["crrkonsersalonu.ibb.istanbul"]
@@ -63,7 +66,7 @@ class CRRScraper(Spider):
 
 		events = Selector(response).xpath(
 			'/html/body/div[2]/div/div[3]/div/div[3]/div')
-		print("CRRScraper runs...")	
+		print("CRRScraper runs...")
 		'''
 		for event in events:
 			item = ScraperItem()
@@ -84,9 +87,12 @@ class CRRScraper(Spider):
 			f.write(line)
 			yield item
 		'''
-def sleep(_,duration = 60):
+
+
+def sleep(_, duration=60):
 	print(f'sleeping for: {duration}')
 	time.sleep(duration)
+
 
 def crawl(runner):
 	print("Biletini al")
@@ -98,11 +104,13 @@ def crawl(runner):
 	d.addBoth(lambda _: crawl(runner))
 	return d
 
+
 def loop_crawl():
 	runner = CrawlerRunner(get_project_settings())
 	print("Runner initialized")
 	crawl(runner)
 	reactor.run()
+
 
 if __name__ == "__main__":
 	print("Scraper test begins...")
