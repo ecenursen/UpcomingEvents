@@ -2,4 +2,12 @@
 
 __pychache__
 
+.project
+.pydevproject
+.idea
+.code
 
+venv/
+docs/build/
+.history/
+.vscode
