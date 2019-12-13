@@ -90,7 +90,7 @@ def sleep(_,duration = 60):
 
 def crawl(runner):
 	runner.crawl(BiletiniAlScraper)
-	runnder.crawl(CRRScraper)
+	runner.crawl(CRRScraper)
 	d = runner.join()
 	d.addBoth(sleep)
 	d.addBoth(lambda _: crawl(runner))
