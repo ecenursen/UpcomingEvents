@@ -32,3 +32,4 @@ if __name__ == "__main__":
     while(True):
         if(time.time() - start > 30):
             scrape(counter)
+            start = time.time()
