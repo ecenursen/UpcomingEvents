@@ -119,6 +119,7 @@ def create_event():
 
 def add_scrapped(myjson):
 	print("__add scrapped called__")
+	print(myjson)
 	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["description"],myjson["image"])
 	print("scrapped",query)
 	return 0
