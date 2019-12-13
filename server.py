@@ -120,11 +120,14 @@ def create_event():
 def add_scrapped(myjson):
 	print("__add scrapped called__")
 	print(myjson)
+	print("NAME:",myjson["name"])
+	print("DATE:",myjson["date"])
 	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["description"],myjson["image"])
 	print("scrapped",query)
 	return 0
 
 def add_event(name,city,location,date,ticket_url,text="",image="",org_id=""):
+	print("NOW IN ADD EVENT")
 	if(org_id == ""):
 		result =insert("EVENT","NAME,CITY,LOCATION,TIME,TEXT,IMAGE,URL","CAST('"+str(name)+"' AS VARCHAR)" + """,
 			""" +"CAST('"+ str(city)+"' AS VARCHAR) """ + """,
