@@ -1,23 +1,29 @@
 import datetime
-import threading
+import json
 import time
 
 from scrapy import Spider
 from scrapy.crawler import CrawlerRunner
+from scrapy.http import Request
+from scrapy.item import Field, Item
 from scrapy.selector import Selector
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
 
+trans_table = {ord(c): None for c in u'\r\n\t'}
+
+
 class ScraperItem(Item):
-    name = Field()
-    url = Field()
-    date = Field()
-    location = Field()
-    city = Field()
-    image = Field()
-    date = Field()
-    type_ = Field()
-    description = Field()
+	name = Field()
+	url = Field()
+	date = Field()
+	location = Field()
+	city = Field()
+	image = Field()
+	date = Field()
+	type_ = Field()
+	description = Field()
+
 
 class BiletiniAl(Spider):
 	name = "BiletiniAl"
@@ -30,7 +36,6 @@ class BiletiniAl(Spider):
 		events = Selector(response).xpath(
 			'/html/body/div[1]/div/div[2]/div/div[2]/div/div[2]/div/div')
 		print("BiletiniAl runs...")
-		
 		for event in events:
 			item = ScraperItem()
 			item['name'] = event.xpath(
@@ -50,16 +55,14 @@ class BiletiniAl(Spider):
 			request = Request(
 				url=item['url'], callback=self.get_description, meta={'item': item})
 			yield request
+
 	def get_description(self, response):
 		page = Selector(response)
 		item = ScraperItem(response.meta["item"])
 		item['description'] = ' '.join(s.strip().translate(
 			trans_table) for s in page.xpath('//*[@id="movie-detail"]//p/text()').extract())
-		global f
-		line = json.dumps(dict(item), ensure_ascii=False) + "\n"
-		f.write(line)
+		# TODO:: CREATE ITEM API CONNECTION
 		yield item
-		
 
 
 class CemalResitRey(Spider):
@@ -77,7 +80,6 @@ class CemalResitRey(Spider):
 		events = Selector(response).xpath(
 			'/html/body/div[2]/div/div[3]/div/div[3]/div')
 		print("CemalResitRey runs...")
-		
 		for event in events:
 			item = ScraperItem()
 			item['date'] = event.xpath(
@@ -92,38 +94,34 @@ class CemalResitRey(Spider):
 			item['location'] = 'Cemal Reşit Rey'
 			item['city'] = 'İstanbul'
 			item['description'] = ""
-			global f
-			line = json.dumps(dict(item), ensure_ascii=False) + "\n"
-			f.write(line)
 			yield item
-		
+
+
 class BaskaSinema(Spider):
 
-    name = "BaskaSinemaScraper"
-    allowed_domains = ["baskasinema.com"]
-    start_urls = ["http://www.baskasinema.com/gelecek-filmler/", ]
+	name = "BaskaSinemaScraper"
+	allowed_domains = ["baskasinema.com"]
+	start_urls = ["http://www.baskasinema.com/gelecek-filmler/", ]
 
-    def parse(self, response):
-        events = Selector(response).xpath(
-            '/html/body/div[2]/div[2]/div/div/div[2]/div[2]/div')
+	def parse(self, response):
+		events = Selector(response).xpath(
+			'/html/body/div[2]/div[2]/div/div/div[2]/div[2]/div')
 		print("BaskaSinema runs...")
-        for event in events:
-            item = ScraperItem()
-            item['date'] = event.xpath(
-                'div[@class="movie_info_box"]/div[@class="movie_info"]/strong/text()').extract()[0]
-            item['name'] = event.xpath(
-                'div[@class="movie_info_box"]/h2/span/text()').extract()[0]
-            item['type_'] = "Sinema"
-            item['image'] = event.xpath('div/a/img/@src').extract()[0]
-            item['url'] = event.xpath('div/a/@href').extract()[0]
-            item['location'] = ""
-            item['city'] = ""
-            item['description'] = ' '.join(s.strip().translate(trans_table)
-                                           for s in event.xpath('div[@class="movie_info_box"]/div[@class="movie_info"]//text()').extract())
-            global f
-            line = json.dumps(dict(item), ensure_ascii=False) + ",\n"
-            f.write(line)
-            yield item
+		for event in events:
+			item = ScraperItem()
+			item['date'] = event.xpath(
+				'div[@class="movie_info_box"]/div[@class="movie_info"]/strong/text()').extract()[0]
+			item['name'] = event.xpath(
+				'div[@class="movie_info_box"]/h2/span/text()').extract()[0]
+			item['type_'] = "Sinema"
+			item['image'] = event.xpath('div/a/img/@src').extract()[0]
+			item['url'] = event.xpath('div/a/@href').extract()[0]
+			item['location'] = ""
+			item['city'] = ""
+			item['description'] = ' '.join(s.strip().translate(trans_table)
+										   for s in event.xpath('div[@class="movie_info_box"]/div[@class="movie_info"]//text()').extract())
+			yield item
+
 
 def sleep(_, duration=60):
 	print(f'sleeping for: {duration}')
