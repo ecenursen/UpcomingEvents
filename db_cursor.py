@@ -1,33 +1,25 @@
-# -*- coding: utf-8 -*-
 import os,sys
-
 import psycopg2 as db
 from flask import flash
 
 
-def select(columns, table, where=None):
-    if (where != None):
-        query = """SELECT {} FROM {} WHERE {}""".format(columns, table, where)
-    else:
-        query = """SELECT {} FROM {}""".format(columns, table)
+def select(columns, table, others=None):
+    query = """SELECT {} FROM {}""".format(columns, table)
+    if(others != None):
+         query += " " + others
     return run(query)
 
-
-def update(table, columns, where):
-    query = """UPDATE {} SET {} WHERE {}""".format(table, columns, where)
+def update(table, columns_values, where):
+    query = """UPDATE {} SET {} WHERE {}""".format(table, columns_values, where)
     return run(query)
-
 
 def delete(table, where):
-    query = """DELETE FROOM {} WHERE {}""".format(table, where)
+    query = """DELETE FROM {} WHERE {}""".format(table, where)
     return run(query)
 
-def insert(table,columns,values,where=None):
+def insert(table,columns,values):
     print("INSERT")
-    if (where != None):
-        query = """INSERT INTO {} ({}) VALUES({});""".format(table, columns,values)
-    else:
-        query = """INSERT INTO {} ({}) VALUES({});""".format(table, columns,values)
+    query = """INSERT INTO {} ({}) VALUES({});""".format(table, columns,values)
     return run(query)
 
 def run(query):
