@@ -5,6 +5,8 @@ import psycopg2 as db
 import json
 from datetime import datetime,timedelta
 from db_cursor import select,insert,update,delete,search
+db.extensions.register_type(db.extensions.UNICODE)
+db.extensions.register_type(db.extensions.UNICODEARRAY)
 
 DEBUG = True
 
@@ -18,6 +20,7 @@ class return_query(dict):
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = ''
+app.config['JSON_AS_ASCII'] = False
 
 ########################
 #
@@ -48,9 +51,8 @@ def is_admin():
 	password = request.form['password']
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ADMIN",others)
-	#
-	# BI TYPE BAK
-	#
+	if(type(result)==type([0,0])):
+		result = {"result":1,"message" :"Login verified"}
 	return result
 
 ########################
@@ -59,9 +61,15 @@ def is_admin():
 #
 ########################
 
+
+def read_organizer():
+
+	return 
+
 def add_organizer(name,mail="",address=""):
 	result = insert("NAME,MAIL,ADDRESS","ORGANIZER",name + "," + mail + "," + address)
 	return result
+
 
 ########################
 # 
@@ -84,9 +92,8 @@ def organizer_verify():
 	password = request.form['password']
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ORGANIZER",others)
-	#
-	# BI TYPE BAK
-	#
+	if(type(result)==type([0,0])):
+		result = {"result":1,"message" :"Login verified"}
 	return result
 
 ########################
@@ -145,9 +152,12 @@ def read_events(many):
 	print(type(many))
 	query = return_query()
 	date = datetime.now().date()
-	others = """WHERE TIME  >= """ +"CAST('"+str(date)+"""'AS DATE)
-		ORDER BY TIME ASC
+	others = """ORDER BY TIME ASC
 		LIMIT """ + "CAST('"+str(many)+"'AS INTEGER)"
+
+	#others = """WHERE TIME  >= """ +"CAST('"+str(date)+"""'AS DATE)
+		#ORDER BY TIME ASC
+		#LIMIT """ + "CAST('"+str(many)+"'AS INTEGER)"
 
 	result = select("ID,NAME,CITY,LOCATION,TIME,TYPE,IMAGE","EVENT",others)
 	print(result)
@@ -205,16 +215,27 @@ def read_event(e_id):
 		})
 	return jsonify(query)
 
-def add_event(name,city,location,date,e_type,ticket_url,description="",image="",org_id=None):
+def add_event(name,city,location,date,e_type,ticket_url,image="",description="",org_id=None):
+	others = "WHERE NAME='"+name+"' AND CITY='"+city+"' AND LOCATION='"+location+"' AND TIME="+"CAST('"+ str(date)+"' AS DATE)"+" AND TYPE='"+e_type+"' AND URL='"+ticket_url+"'"
+	if(org_id!=None):
+		others += " AND ORGANIZER_ID="+ "CAST('"+ str(org_id)+"' AS INTEGER) "
+	if(image!=""):
+		others += " AND IMAGE='"+image+"'"
+	if(description!=""):
+		others += " AND DESCRIPTION='"+description+"'"
+	duplicate = select("*","EVENT",others)
+	if(type(duplicate)==type([0,0])):
+		print("\n\nDUPLICATE ALERT\n")
+		return {"result":-1,"message":"duplicated"}
+	print("not duplicate")
 	values = "'"+name+"','"+city+"','"+location+"',"+"CAST('"+ str(date)+"' AS DATE) "+",'"+e_type+"','"+description+"','"+image+"','"+ticket_url+"'"
-	print("IN ADD EVENT values:",values)
+	#print("IN ADD EVENT values:",values)
 	if(org_id == None):
 		result =insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL","EVENT",values)
 	else:
 		values = values + ",CAST('"+ str(org_id)+"' AS INTEGER) "
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID","EVENT",values)
 	return result
-
 
 def delete_event(e_id):
 	return delete("EVENT","ID ="+"CAST('"+ str(e_id)+"' AS INTEGER) ")
@@ -393,7 +414,7 @@ def home_page():
 		madate = datetime.now() - timedelta(days = 0)
 		queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
 		add_event("NAMEEE","ISTANBUL","CRR",madate,"KONSER","sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
-	print(select("*","EVENT"))
+	#print(select("*","EVENT"))
 	return "success"
 
 

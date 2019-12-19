@@ -1,13 +1,15 @@
 import os,sys
 import psycopg2 as db
 from flask import flash
+db.extensions.register_type(db.extensions.UNICODE)
+db.extensions.register_type(db.extensions.UNICODEARRAY)
 
 
 def select(columns, table, others=None):
     query = """SELECT {} FROM {}""".format(columns, table)
     if(others != None):
          query += " " + others
-    print("query:", query)
+    #print("query:", query)
     return run(query)
 
 def update(table, columns_values, where):
@@ -19,8 +21,8 @@ def delete(table, where):
     return run(query)
 
 def insert(columns,table,values):
+    
     query = """INSERT INTO {} ({}) VALUES({});""".format(table, columns,values)
-    print("INSERT query:", query)
     return run(query)
 
 def search(text):
@@ -38,10 +40,12 @@ def run(query):
         print("db cursor")
         if(not 'DROP' in query and not 'UPDATE' in query and not 'DELETE' in query and not 'INSERT' in query):
             result = cursor.fetchall()   
-            print("RUN result", result)
+            #print("RUN result", result)
+            if result == []:
+                result = {"result":-1,"message":"Nothing found on database"}
         else:
             result = {"result":1,"message":"Success"}
-            print("RUN result", result)
+            #print("RUN result", result)
     except db.DatabaseError as dberror:
         if connection != None:
             connection.rollback()
