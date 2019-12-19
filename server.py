@@ -4,7 +4,7 @@ from dbinit import initialize,drop_table
 import psycopg2 as db
 import json
 from datetime import datetime,timedelta
-from db_cursor import select,insert,update,delete
+from db_cursor import select,insert,update,delete,search
 
 DEBUG = True
 
@@ -39,7 +39,7 @@ app.config['SECRET_KEY'] = ''
 ########################
 
 def add_admin(username,password):
-	result = insert("ADMIN","USERNAME,PASSWORD", username +"," + password)
+	result = insert("USERNAME,PASSWORD","ADMIN", username +"," + password)
 	return result
 	
 @app.route('/api/admin/login_verif',methods=['GET'])
@@ -60,7 +60,7 @@ def is_admin():
 ########################
 
 def add_organizer(name,mail="",address=""):
-	result = insert("NAME,MAIL, ADDRESS","ORGANIZER",name + "," + mail + "," + address)
+	result = insert("NAME,MAIL,ADDRESS","ORGANIZER",name + "," + mail + "," + address)
 	return result
 
 ########################
@@ -129,7 +129,7 @@ def organizer_review_approve(org_id):
 
 @app.route('/api/organizer_reject/<int:org_id>',methods=['POST'])
 def organizer_review_reject(org_id):
-	result = delete("ORGANIZER_REVIEW","WHERE ID="+"CAST('"+str(org_id)+"' AS INTEGER) ")
+	result = delete("ORGANIZER_REVIEW","ID="+"CAST('"+str(org_id)+"' AS INTEGER) ")
 	return result
 
 ########################
@@ -140,6 +140,7 @@ def organizer_review_reject(org_id):
 
 @app.route('/api/events/<int:many>',methods=['GET'])
 def read_events(many):
+	print("IN READ EVENTSSS")
 	print("read event")
 	print(type(many))
 	query = return_query()
@@ -148,9 +149,10 @@ def read_events(many):
 		ORDER BY TIME ASC
 		LIMIT """ + "CAST('"+str(many)+"'AS INTEGER)"
 
-	result = select("ID,NAME,CITY,LOCATION,DATE,TYPE","EVENT",others)
+	result = select("ID,NAME,CITY,LOCATION,TIME,TYPE,IMAGE","EVENT",others)
 	print(result)
 	for row in result:
+		print(row)
 		query.add(row[0],{
 			"id": row[0],
 			"name": row[1],
@@ -186,6 +188,7 @@ def read_organizers_events(org_id):
 
 @app.route('/api/event_detail/<int:e_id>',methods=['GET'])
 def read_event(e_id):
+	print("IN READ EVENT")
 	query = return_query()
 	row = select("*","EVENT","WHERE ID = " +"CAST('"+str(e_id)+"' AS INTEGER)")
 	query.add(row[0],{
@@ -203,7 +206,8 @@ def read_event(e_id):
 	return jsonify(query)
 
 def add_event(name,city,location,date,e_type,ticket_url,description="",image="",org_id=None):
-	values = name+","+city+","+location+","+str(date)+","+e_type+","+ticket_url+","+description+","+image
+	values = "'"+name+"','"+city+"','"+location+"',"+"CAST('"+ str(date)+"' AS DATE) "+",'"+e_type+"','"+description+"','"+image+"','"+ticket_url+"'"
+	print("IN ADD EVENT values:",values)
 	if(org_id == None):
 		result =insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL","EVENT",values)
 	else:
@@ -212,6 +216,56 @@ def add_event(name,city,location,date,e_type,ticket_url,description="",image="",
 	return result
 
 
+def delete_event(e_id):
+	return delete("EVENT","ID ="+"CAST('"+ str(e_id)+"' AS INTEGER) ")
+
+@app.route('/api/filterby_city/<city>',methods=['GET'])
+def filter_by_city(city):
+	query = return_query()
+	result = select("*","EVENT","WHERE CITY= "+ city +" ORDER_BY ID ASC")
+	for row in result:
+		query.add(row[0],{
+			"id": row[0],
+			"name": row[1],
+			"city": row[2],
+			"location": row[3],
+			"date": row[4],
+			"type": row[5],
+			"image": row[7]
+		})
+	return jsonify(query)
+
+@app.route('/api/filterby_type/<type>',methods=['GET'])
+def filter_by_type(type):
+	query = return_query()
+	result = select("*","EVENT","WHERE TYPE= "+ type +" ORDER_BY ID ASC")
+	for row in result:
+		query.add(row[0],{
+			"id": row[0],
+			"name": row[1],
+			"city": row[2],
+			"location": row[3],
+			"date": row[4],
+			"type": row[5],
+			"image": row[7]
+		})
+	return jsonify(query)
+
+@app.route('/api/search/<keyword>',methods=['GET'])
+def search_by_keyword(keyword):
+	query = return_query()
+	result = search(keyword)
+	for row in result:
+		query.add(row[0],{
+			"id": row[0],
+			"name": row[1],
+			"city": row[2],
+			"location": row[3],
+			"date": row[4],
+			"type": row[5],
+			"image": row[7]
+		})
+	return jsonify(query)
 	
 ########################
 # 
@@ -302,14 +356,14 @@ def updated_event_review_approve(e_id):
 	description = result[7]
 	image = result[8]
 	org_id = result[9]
-	columns_values = "NAME="+ name + ",CITY="+ city + ",LOCATION" + location+",DATE="+"CAST('"+str(date)+"' AS DATE)"+ ",TYPE="+e_type+",DESCRIPTION="description+",IMAGE="+image+",URL="+ticket_url+",ORGANIZER_ID="+",CAST('"+ str(org_id)+"' AS INTEGER) "
+	columns_values = "NAME="+ name + ",CITY="+ city + ",LOCATION" + location+",DATE="+"CAST('"+str(date)+"' AS DATE)"+ ",TYPE="+e_type+",DESCRIPTION="+description+",IMAGE="+image+",URL="+ticket_url+",ORGANIZER_ID="+",CAST('"+ str(org_id)+"' AS INTEGER) "
 	result = update("EVENT",columns_values,"WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	deleted = event_review_reject(e_id)
 	return result
 
 @app.route('/api/event_reject/<int:e_id>',methods=['PUT'])
 def event_review_reject(e_id):
-	result = delete("EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	result = delete("EVENT_REVIEW","ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	return result
 ########################
 # 
@@ -338,8 +392,10 @@ def home_page():
 		})
 		madate = datetime.now() - timedelta(days = 0)
 		queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
-		add_event("hobaa","NY","MAGNOLIA PUDDING",madate.date(),"MUSIC","http.sdgsg.com","jjnjn","sdfsd.jpg") 
+		add_event("NAMEEE","ISTANBUL","CRR",madate,"KONSER","sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
+	print(select("*","EVENT"))
 	return "success"
+
 
 if(DEBUG == True):
 	os.environ['DATABASE_URL'] = "dbname='upcoming-events-platform' user='postgres' host='localhost' password='softeng2019'"
