@@ -160,7 +160,7 @@ def read_events(many):
 			"location": row[3],
 			"date": row[4],
 			"type": row[5],
-			"image": row[7],
+			"image": row[6],
 		})
 	return jsonify(query)
 
