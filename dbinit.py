@@ -82,6 +82,12 @@ INIT_STATEMENTS = [
 	"""
 ]
 
+def drop_table(url):
+	with dbapi2.connect(url) as connection:
+		cursor = connection.cursor()
+		cursor.execute("DROP SCHEMA public CASCADE;CREATE SCHEMA public;")
+		cursor.close()
+
 def initialize(url):
 	drop_table(url)
 	with dbapi2.connect(url) as connection:
@@ -98,8 +104,3 @@ if __name__ == "__main__":
 		sys.exit(1)
 	initialize(url)
 
-def drop_table(url):
-	with dbapi2.connect(url) as connection:
-		cursor = connection.cursor()
-		cursor.execute("DROP SCHEMA public CASCADE;CREATE SCHEMA public;")
-		cursor.close()
