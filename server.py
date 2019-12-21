@@ -43,6 +43,10 @@ app.config['JSON_AS_ASCII'] = False
 ########################
 
 def add_admin(username,password):
+	duplicate = select("*","ADMIN","WHERE USERNAME='"+username +"' AND PASSWORD='"+password +"'")
+	if(type(duplicate)==type([0,0])):
+		print("\n\nDUPLICATED ADMIN ALERT\n")
+		return {"result":-1,"message":"Duplicated ADMIN"}
 	result = insert("USERNAME,PASSWORD","ADMIN", "'"+username +"','" + password+"'")
 	return result
 	
@@ -62,7 +66,7 @@ def is_admin():
 #
 ########################
 
-@app.route('/api/all_organizers/', methods=['GET'])
+@app.route('/api/admin/all_organizers/', methods=['GET'])
 def read_organizer():
 	query = []
 	result = select("ID,NAME,MAIL,ADDRESS","ORGANIZER")
@@ -133,9 +137,6 @@ def organizer_verify():
 #
 ########################
 
-def add_organizer_review(name,mail,address,username,password):
-	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
-
 @app.route('/api/admin/organizer_review',methods=['GET'])
 def read_organizer_review():
 	query = []
@@ -152,7 +153,16 @@ def read_organizer_review():
 		})
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
-@app.route('/api/organizer_approve/<org_id>',methods=['POST'])
+@app.route('/api/register_organizer/',methods=['POST'])
+def add_organizer_review():
+	name = request.form['name']
+	mail = request.form['mail']
+	address = request.form['address']
+	username = request.form['username']
+	password = request.form['password']
+	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
+
+@app.route('/api/admin/organizer_approve/<org_id>',methods=['POST'])
 def organizer_review_approve(org_id):
 	others = "WHERE ID =" + "CAST('"+str(org_id)+"' AS INTEGER) "
 	result = select("NAME,MAIL,ADDRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW",others)
@@ -169,7 +179,7 @@ def organizer_review_approve(org_id):
 	organizer_review_reject(org_id)
 	return f_result
 
-@app.route('/api/organizer_reject/<int:org_id>',methods=['DELETE'])
+@app.route('/api/admin/organizer_reject/<int:org_id>',methods=['DELETE'])
 def organizer_review_reject(org_id):
 	result = delete("ORGANIZER_REVIEW","ID="+"CAST('"+str(org_id)+"' AS INTEGER) ")
 	return result
@@ -276,7 +286,7 @@ def add_event(name,city,location,date,e_type,ticket_url,image="",description="",
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID","EVENT",values)
 	return result
 
-
+@app.route('/api/delete_event/<e_id>',methods=['DELETE'])
 def delete_event(e_id):
 	return delete("EVENT","ID ="+"CAST('"+ str(e_id)+"' AS INTEGER) ")
 
@@ -437,7 +447,7 @@ def update_event():
 	ticket_url = request.form['ticket_url']
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_evet_id)
 
-@app.route('/api/new_event_approve/<int:e_id>',methods=['POST'])
+@app.route('/api/admin/new_event_approve/<int:e_id>',methods=['POST'])
 def new_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	result = result[0]
@@ -454,7 +464,7 @@ def new_event_review_approve(e_id):
 	deleted = event_review_reject(e_id)
 	return result
 
-@app.route('/api/updated_event_approve/<int:e_id>',methods=['PUT'])
+@app.route('/api/admin/updated_event_approve/<int:e_id>',methods=['PUT'])
 def updated_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	result = result[0]
@@ -511,17 +521,10 @@ def add_scrapped(myjson):
 
 @app.route("/")
 def home_page():
-	query = []
-	for i in range(10):
-		query.append({
-			'key':i,
-			'value':i*24
-		})
-		madate = datetime.now() - timedelta(days = 0)
-		queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
-	add_event_review("SOETHING","FORJT","CRR",madate,"MUSIC",47,"sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
-	#print(select("*","EVENT"))
-	return "efe"
+	#queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
+	#add_event_review("SOETHING","FORJT","CRR",madate,"MUSIC",47,"sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
+	print(add_admin("ADMIN","123"))
+	return "FIRST ADMIN ADDED"
 
 
 if(DEBUG == True):
@@ -532,3 +535,8 @@ if __name__ == "__main__":
 		app.run(debug='True')
 	else:
 		app.run()
+
+
+
+		#sdg
+
