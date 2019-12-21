@@ -3,6 +3,9 @@ import sys
 
 import psycopg2 as dbapi2
 
+dbapi2.extensions.register_type(dbapi2.extensions.UNICODE)
+dbapi2.extensions.register_type(dbapi2.extensions.UNICODEARRAY)
+
 
 INIT_STATEMENTS = [
 
@@ -101,5 +104,6 @@ if __name__ == "__main__":
 	if url is None:
 		print("Usage: DATABASE_URL=url python dbinit.py", file=sys.stderr)
 		sys.exit(1)
+	
 	initialize(url)
 
