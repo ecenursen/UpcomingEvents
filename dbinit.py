@@ -83,7 +83,6 @@ INIT_STATEMENTS = [
 ]
 
 def initialize(url):
-	drop_table(url)
 	with dbapi2.connect(url) as connection:
 		cursor = connection.cursor()
 		for statement in INIT_STATEMENTS:

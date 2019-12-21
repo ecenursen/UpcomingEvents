@@ -42,7 +42,7 @@ app.config['JSON_AS_ASCII'] = False
 ########################
 
 def add_admin(username,password):
-	result = insert("USERNAME,PASSWORD","ADMIN", username +"," + password)
+	result = insert("USERNAME,PASSWORD","ADMIN", "'"+username +"','" + password+"'")
 	return result
 	
 @app.route('/api/admin/login_verif',methods=['GET'])
@@ -61,15 +61,43 @@ def is_admin():
 #
 ########################
 
-
+@app.route('/api/all_organizers/', methods=['GET'])
 def read_organizer():
+	query = return_query()
+	result = select("ID,NAME,MAIL,ADDRESS","ORGANIZER")
+	if(type(result)!= type([1,1])):
+		return result
+	for row in result:
+		query.add(row[0],{
+			"id": row[0],
+			"name": row[1],
+			"mail": row[2],
+			"address": row[3]
+		})
+	return  jsonify(query)
 
-	return 
+@app.route('/api/get_organizer_info/<int:org_id>',methods=['GET'])
+def get_organizer_info(org_id):
+	query = return_query()
+	result = select("ID,NAME,MAIL,ADDRESS","ORGANIZER","WHERE ID="+ "CAST('"+str(org_id)+"' AS INTEGER) ")
+	if(type(result)!= type([1,1])):
+		return result
+	for row in result:
+		query.add(row[0],{
+			"id": row[0],
+			"name": row[1],
+			"mail": row[2],
+			"address": row[3]
+		})
+	return  jsonify(query)
 
-def add_organizer(name,mail="",address=""):
-	result = insert("NAME,MAIL,ADDRESS","ORGANIZER",name + "," + mail + "," + address)
+def add_organizer(name,mail=" ",address="empty"):
+	duplicate = select("*","ORGANIZER","WHERE NAME='"+name+"' AND MAIL='" +mail+"' AND ADDRESS='"+ address + "'")
+	if(type(duplicate)==type([0,0])):
+		print("\n\nDUPLICATED ORGANIZER ALERT\n")
+		return {"result":-1,"message":"Duplicated Organizer"}
+	result = insert("NAME,MAIL,ADDRESS","ORGANIZER","'"+name + "','" + mail + "','" + address+"'")
 	return result
-
 
 ########################
 # 
@@ -78,22 +106,24 @@ def add_organizer(name,mail="",address=""):
 ########################
 
 def add_organizer_login(org_id,username,password):
-	result = insert("USERNAME,PASSWORD,ORGANIZER_ID","ORGANIZER_LOGIN",username + "," + password + "," + "CAST('"+str(org_id)+"' AS INTEGER) ")
+	result = insert("USERNAME,PASSWORD,ORGANIZER_ID","ORGANIZER_LOGIN","'"+username + "','" + password + "'," + "CAST('"+str(org_id)+"' AS INTEGER) ")
 	return result
 
 def get_organizer_id_for_login(name,mail,address):
 	others = "WHERE NAME=" + "CAST('"+str(name)+"' AS VARCHAR) " + "AND MAIL=" + "CAST('"+str(mail)+"' AS VARCHAR) " + "AND ADDRESS=" + "CAST('"+str(address)+"' AS VARCHAR) "
 	result = select("ID","ORGANIZER",others)
-	return result[0]
+	print("result in get org id:",result)
+	return result[0][0]
 
 @app.route('/api/organizer_login_verif',methods=['GET'])
 def organizer_verify():
 	username = request.form['username']
 	password = request.form['password']
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
-	result = select("*","ORGANIZER",others)
+	result = select("*","ORGANIZER_LOGIN",others)
 	if(type(result)==type([0,0])):
-		result = {"result":1,"message" :"Login verified"}
+		found = {"result":1,"message" :"Login verified","org_id":result[0][2]}
+		return found
 	return result
 
 ########################
@@ -103,12 +133,14 @@ def organizer_verify():
 ########################
 
 def add_organizer_review(name,mail,address,username,password):
-	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW",name + "," + mail + "," + address + "," + username + "," + password)
+	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
 
 @app.route('/api/admin/organizer_review',methods=['GET'])
 def read_organizer_review():
 	query = return_query()
-	result = select("*","ORGANIZER_REVIEW","ORDER_BY ID ASC")
+	result = select("*","ORGANIZER_REVIEW")
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -119,22 +151,24 @@ def read_organizer_review():
 		})
 	return jsonify(query)
 
-@app.route('/api/organizer_approve/<int:org_id>',methods=['POST'])
+@app.route('/api/organizer_approve/<org_id>',methods=['POST'])
 def organizer_review_approve(org_id):
 	others = "WHERE ID =" + "CAST('"+str(org_id)+"' AS INTEGER) "
 	result = select("NAME,MAIL,ADDRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW",others)
-	name = result[0]
-	mail = result[1]
-	address = result[2]
-	username = result[3]
-	password = result[4]
+	print("result:",result)
+	name = result[0][0]
+	mail = result[0][1]
+	address = result[0][2]
+	username = result[0][3]
+	password = result[0][4]
 	org_result = add_organizer(name,mail,address)
 	if(org_result['result'] != 1):
 		return org_result
 	f_result = add_organizer_login(get_organizer_id_for_login(name,mail,address),username,password)
+	organizer_review_reject(org_id)
 	return f_result
 
-@app.route('/api/organizer_reject/<int:org_id>',methods=['POST'])
+@app.route('/api/organizer_reject/<int:org_id>',methods=['DELETE'])
 def organizer_review_reject(org_id):
 	result = delete("ORGANIZER_REVIEW","ID="+"CAST('"+str(org_id)+"' AS INTEGER) ")
 	return result
@@ -152,15 +186,14 @@ def read_events(many):
 	print(type(many))
 	query = return_query()
 	date = datetime.now().date()
-	others = """ORDER BY TIME ASC
+	others = others = """WHERE TIME  >= """ +"CAST('"+str(date)+"""'AS DATE)
+		ORDER BY TIME ASC
 		LIMIT """ + "CAST('"+str(many)+"'AS INTEGER)"
-
-	#others = """WHERE TIME  >= """ +"CAST('"+str(date)+"""'AS DATE)
-		#ORDER BY TIME ASC
-		#LIMIT """ + "CAST('"+str(many)+"'AS INTEGER)"
 
 	result = select("ID,NAME,CITY,LOCATION,TIME,TYPE,IMAGE","EVENT",others)
 	print(result)
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		print(row)
 		query.add(row[0],{
@@ -181,6 +214,8 @@ def read_organizers_events(org_id):
 	result = select("*","EVENT","WHERE ORGANIZER_ID = " +"CAST('"+str(org_id)+"' AS INTEGER)"+ """
 		AND TIME >= """ +"CAST('"+str(date)+"""'AS DATE)
 		ORDER BY TIME ASC""")
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -201,6 +236,9 @@ def read_event(e_id):
 	print("IN READ EVENT")
 	query = return_query()
 	row = select("*","EVENT","WHERE ID = " +"CAST('"+str(e_id)+"' AS INTEGER)")
+	if(type(row)!= type([1,1])):
+		return row
+	row = row[0]
 	query.add(row[0],{
 			"id": row[0],
 			"name": row[1],
@@ -237,13 +275,16 @@ def add_event(name,city,location,date,e_type,ticket_url,image="",description="",
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID","EVENT",values)
 	return result
 
+
 def delete_event(e_id):
 	return delete("EVENT","ID ="+"CAST('"+ str(e_id)+"' AS INTEGER) ")
 
 @app.route('/api/filterby_city/<city>',methods=['GET'])
 def filter_by_city(city):
 	query = return_query()
-	result = select("*","EVENT","WHERE CITY= "+ city +" ORDER_BY ID ASC")
+	result = select("*","EVENT","WHERE CITY= '"+ city +"'")
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -256,10 +297,12 @@ def filter_by_city(city):
 		})
 	return jsonify(query)
 
-@app.route('/api/filterby_type/<type>',methods=['GET'])
-def filter_by_type(type):
+@app.route('/api/filterby_type/<e_type>',methods=['GET'])
+def filter_by_type(e_type):
 	query = return_query()
-	result = select("*","EVENT","WHERE TYPE= "+ type +" ORDER_BY ID ASC")
+	result = select("*","EVENT","WHERE TYPE= '"+ e_type +"'")
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -276,6 +319,9 @@ def filter_by_type(type):
 def search_by_keyword(keyword):
 	query = return_query()
 	result = search(keyword)
+	print("result:",result)
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -297,7 +343,9 @@ def search_by_keyword(keyword):
 @app.route('/api/admin/event_review',methods=['GET'])
 def read_event_review():
 	query = return_query()
-	result = select("*","EVENT_REVIEW","ORDER_BY ID ASC")
+	result = select("*","EVENT_REVIEW")
+	if(type(result)!= type([1,1])):
+		return result
 	for row in result:
 		query.add(row[0],{
 			"id": row[0],
@@ -314,12 +362,12 @@ def read_event_review():
 		})
 	return jsonify(query)
 
-def add_event_review(name,city,location,date,e_type,org_id,description="",image="",ticket_url="",old_evet_id=None):
+def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",description="",image="",old_evet_id=None):
 	if(old_evet_id == None):
-		values = name + "," + city + "," +location + "," + "CAST('"+str(date)+"' AS DATE)" + "," +e_type + "," + description + "," +image + "," +ticket_url +",CAST('"+ str(org_id)+"' AS INTEGER) "
+		values = "'" + name + "','" + city + "','" +location + "'," + "CAST('"+str(date)+"' AS DATE)" + ",'" +e_type + "','" + description + "','" +image + "','" +ticket_url +"',CAST('"+ str(org_id)+"' AS INTEGER) "
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID","EVENT_REVIEW",values)
 	else:
-		values = name + "," + city + "," +location + "," + "CAST('"+str(date)+"' AS DATE)" + "," +e_type + "," + description + "," +image + "," +ticket_url +",CAST('"+ str(org_id)+"' AS INTEGER) " + ",CAST('"+ str(old_evet_id)+"' AS INTEGER) "
+		values = "'" + name + "','" + city + "','" +location + "'," + "CAST('"+str(date)+"' AS DATE)" + ",'" +e_type + "','" + description + "','" +image + "','" +ticket_url +"',CAST('"+ str(org_id)+"' AS INTEGER) " + ",CAST('"+ str(old_evet_id)+"' AS INTEGER) "
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID,OLD_EVENT_ID","EVENT_REVIEW",values)
 	return result
 
@@ -349,9 +397,10 @@ def update_event():
 	ticket_url = request.form['ticket_url']
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_evet_id)
 
-@app.route('/api/new_event_approved/<int:e_id>',methods=['POST'])
+@app.route('/api/new_event_approve/<int:e_id>',methods=['POST'])
 def new_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	result = result[0]
 	name = result[1]
 	city = result[2]
 	location = result[3]
@@ -368,6 +417,7 @@ def new_event_review_approve(e_id):
 @app.route('/api/updated_event_approve/<int:e_id>',methods=['PUT'])
 def updated_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	result = result[0]
 	name = result[1]
 	city = result[2]
 	location = result[3]
@@ -377,20 +427,36 @@ def updated_event_review_approve(e_id):
 	description = result[7]
 	image = result[8]
 	org_id = result[9]
-	columns_values = "NAME="+ name + ",CITY="+ city + ",LOCATION" + location+",DATE="+"CAST('"+str(date)+"' AS DATE)"+ ",TYPE="+e_type+",DESCRIPTION="+description+",IMAGE="+image+",URL="+ticket_url+",ORGANIZER_ID="+",CAST('"+ str(org_id)+"' AS INTEGER) "
-	result = update("EVENT",columns_values,"WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
-	deleted = event_review_reject(e_id)
+	old_e_id = result[10]
+	columns_values = "NAME='"+ name + "',CITY='"+ city + "',LOCATION='" + location+"',TIME="+"CAST('"+str(date)+"' AS DATE)"+ ",TYPE='"+e_type+"',DESCRIPTION='"+description+"',IMAGE='"+image+"',URL='"+ticket_url+"'"
+	result = update("EVENT",columns_values,"ID="+"CAST('"+str(old_e_id)+"' AS INTEGER) ")
+	event_review_reject(e_id)
 	return result
 
-@app.route('/api/event_reject/<int:e_id>',methods=['PUT'])
+@app.route('/api/event_reject/<int:e_id>',methods=['DELETE'])
 def event_review_reject(e_id):
 	result = delete("EVENT_REVIEW","ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	return result
 ########################
 # 
-# SCRAPPER FUNCT
+# USERNAME USAGE 
 #
 ########################
+
+@app.route('/api/username_control/<username>',methods=['GET'])
+def username_verif(username):
+	result = select("*","ORGANIZER_LOGIN","WHERE USERNAME='"+username+"'")
+	if(type(result)== type([0,0])):
+		result = {"result":-1,"message": "Username has already been in use"}
+		return result
+	else:
+		result = select("*","ORGANIZER_REVIEW","WHERE USERNAME='"+username+"'")
+		if(type(result)== type([0,0])):
+			result = {"result":-1,"message": "Username has already been in use"}
+			return result
+		else:
+			return {"result":1,"message":"Username can be used"}
+
 
 def add_scrapped(myjson):
 	print("__add scrapped called__")
@@ -413,9 +479,9 @@ def home_page():
 		})
 		madate = datetime.now() - timedelta(days = 0)
 		queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
-		add_event("NAMEEE","ISTANBUL","CRR",madate,"KONSER","sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
+	add_event_review("SOETHING","FORJT","CRR",madate,"MUSIC",47,"sgs.hf.com","snkfnsklfleksmglkemlk","sfa.jpg") 
 	#print(select("*","EVENT"))
-	return "success"
+	return "efe"
 
 
 if(DEBUG == True):
