@@ -290,13 +290,15 @@ def filter_search(keywords="None",city="None",e_type="None"):
 		flag = 1
 		others = "WHERE DESCRIPTION LIKE '%" + keywords +"%'"+" OR NAME LIKE '%" + keywords + "%'"
 	if city != "None":
-		if flag ==0:
+		if flag == 0:
+			flag = 1
 			others += "WHERE"
 		else:
 			others += "AND"
 		others += " CITY LIKE '"+ city +"%'"
 	if e_type != "None":
 		if flag ==0:
+			flag = 1
 			others += "WHERE"
 		else:
 			others += "AND"
