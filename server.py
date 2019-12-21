@@ -18,6 +18,7 @@ class return_query(dict):
 	def add(self,key,value):
 		self[key] = value
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = ''
 app.config['JSON_AS_ASCII'] = False
@@ -63,33 +64,33 @@ def is_admin():
 
 @app.route('/api/all_organizers/', methods=['GET'])
 def read_organizer():
-	query = return_query()
+	query = []
 	result = select("ID,NAME,MAIL,ADDRESS","ORGANIZER")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"mail": row[2],
 			"address": row[3]
 		})
-	return  jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/get_organizer_info/<int:org_id>',methods=['GET'])
 def get_organizer_info(org_id):
-	query = return_query()
+	query = []
 	result = select("ID,NAME,MAIL,ADDRESS","ORGANIZER","WHERE ID="+ "CAST('"+str(org_id)+"' AS INTEGER) ")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"mail": row[2],
 			"address": row[3]
 		})
-	return  jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 def add_organizer(name,mail=" ",address="empty"):
 	duplicate = select("*","ORGANIZER","WHERE NAME='"+name+"' AND MAIL='" +mail+"' AND ADDRESS='"+ address + "'")
@@ -137,19 +138,19 @@ def add_organizer_review(name,mail,address,username,password):
 
 @app.route('/api/admin/organizer_review',methods=['GET'])
 def read_organizer_review():
-	query = return_query()
+	query = []
 	result = select("*","ORGANIZER_REVIEW")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"mail": row[2],
 			"address": row[3],
 			"username": row[4]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/organizer_approve/<org_id>',methods=['POST'])
 def organizer_review_approve(org_id):
@@ -184,7 +185,7 @@ def read_events(many):
 	print("IN READ EVENTSSS")
 	print("read event")
 	print(type(many))
-	query = return_query()
+	query = []
 	date = datetime.now().date()
 	others = others = """WHERE TIME  >= """ +"CAST('"+str(date)+"""'AS DATE)
 		ORDER BY TIME ASC
@@ -196,7 +197,7 @@ def read_events(many):
 		return result
 	for row in result:
 		print(row)
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -205,11 +206,11 @@ def read_events(many):
 			"type": row[5],
 			"image": row[6],
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/org_events/<int:org_id>',methods=['GET'])
 def read_organizers_events(org_id):
-	query = return_query()
+	query = []
 	date = datetime.now().date()
 	result = select("*","EVENT","WHERE ORGANIZER_ID = " +"CAST('"+str(org_id)+"' AS INTEGER)"+ """
 		AND TIME >= """ +"CAST('"+str(date)+"""'AS DATE)
@@ -217,7 +218,7 @@ def read_organizers_events(org_id):
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -229,17 +230,17 @@ def read_organizers_events(org_id):
 			"url": row[8],
 			"org_id": row[9]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/event_detail/<int:e_id>',methods=['GET'])
 def read_event(e_id):
 	print("IN READ EVENT")
-	query = return_query()
+	query = []
 	row = select("*","EVENT","WHERE ID = " +"CAST('"+str(e_id)+"' AS INTEGER)")
 	if(type(row)!= type([1,1])):
 		return row
 	row = row[0]
-	query.add(row[0],{
+	query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -251,7 +252,7 @@ def read_event(e_id):
 			"url": row[8],
 			"org_id": row[9]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 def add_event(name,city,location,date,e_type,ticket_url,image="",description="",org_id=None):
 	others = "WHERE NAME='"+name+"' AND CITY='"+city+"' AND LOCATION='"+location+"' AND TIME="+"CAST('"+ str(date)+"' AS DATE)"+" AND TYPE='"+e_type+"' AND URL='"+ticket_url+"'"
@@ -281,12 +282,12 @@ def delete_event(e_id):
 
 @app.route('/api/filterby_city/<city>',methods=['GET'])
 def filter_by_city(city):
-	query = return_query()
+	query = []
 	result = select("*","EVENT","WHERE CITY= '"+ city +"'")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -295,16 +296,16 @@ def filter_by_city(city):
 			"type": row[5],
 			"image": row[7]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/filterby_type/<e_type>',methods=['GET'])
 def filter_by_type(e_type):
-	query = return_query()
+	query = []
 	result = select("*","EVENT","WHERE TYPE= '"+ e_type +"'")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -313,17 +314,17 @@ def filter_by_type(e_type):
 			"type": row[5],
 			"image": row[7]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/search/<keyword>',methods=['GET'])
 def search_by_keyword(keyword):
-	query = return_query()
+	query = []
 	result = search(keyword)
 	print("result:",result)
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -332,7 +333,7 @@ def search_by_keyword(keyword):
 			"type": row[5],
 			"image": row[7]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 	
 ########################
 # 
@@ -342,12 +343,12 @@ def search_by_keyword(keyword):
 
 @app.route('/api/admin/event_review',methods=['GET'])
 def read_event_review():
-	query = return_query()
+	query = []
 	result = select("*","EVENT_REVIEW")
 	if(type(result)!= type([1,1])):
 		return result
 	for row in result:
-		query.add(row[0],{
+		query.append({
 			"id": row[0],
 			"name": row[1],
 			"city": row[2],
@@ -360,7 +361,7 @@ def read_event_review():
 			"org_id": row[9],
 			"old_id": row[10]
 		})
-	return jsonify(query)
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",description="",image="",old_evet_id=None):
 	if(old_evet_id == None):
@@ -471,9 +472,9 @@ def add_scrapped(myjson):
 
 @app.route("/")
 def home_page():
-	query = return_query()
+	query = []
 	for i in range(10):
-		query.add(i,{
+		query.append(i,{
 			'key':i,
 			'value':i*24
 		})
