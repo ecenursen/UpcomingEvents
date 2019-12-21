@@ -8,7 +8,7 @@ from db_cursor import select,insert,update,delete,search
 db.extensions.register_type(db.extensions.UNICODE)
 db.extensions.register_type(db.extensions.UNICODEARRAY)
 
-DEBUG = False
+DEBUG = True
 
 class return_query(dict):
 
