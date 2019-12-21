@@ -13,7 +13,7 @@ def select(columns, table, others=None):
     return run(query)
 
 def update(table, columns_values, where):
-    query = """UPDATE {} SET {} WHERE {}""".format(table, columns_values, where)
+    query = """UPDATE {} SET {} WHERE {};""".format(table, columns_values, where)
     return run(query)
 
 def delete(table, where):
@@ -21,18 +21,18 @@ def delete(table, where):
     return run(query)
 
 def insert(columns,table,values):
-    
     query = """INSERT INTO {} ({}) VALUES({});""".format(table, columns,values)
     return run(query)
 
 def search(text):
-    query = "SELECT FROM EVENT WHERE DESCRIPTION LIKE '%" + text +"%' OR NAME LIKE '%" + text + "'%"
-    return (query)
+    query = "SELECT * FROM EVENT WHERE DESCRIPTION LIKE '%" + text +"%'"+" OR NAME LIKE '%" + text + "%'"
+    return run(query)
 
 def run(query):
     print("RUN")
     connection = None
     result = None
+    print("query:",query)
     try:
         connection = db.connect(os.environ.get('DATABASE_URL'))
         cursor = connection.cursor()
@@ -40,12 +40,12 @@ def run(query):
         print("db cursor")
         if(not 'DROP' in query and not 'UPDATE' in query and not 'DELETE' in query and not 'INSERT' in query):
             result = cursor.fetchall()   
-            #print("RUN result", result)
+            print("RUN result", result)
             if result == []:
                 result = {"result":-1,"message":"Nothing found on database"}
         else:
             result = {"result":1,"message":"Success"}
-            #print("RUN result", result)
+            print("RUN result", result)
     except db.DatabaseError as dberror:
         if connection != None:
             connection.rollback()
