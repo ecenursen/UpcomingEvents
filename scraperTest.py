@@ -27,8 +27,8 @@ class ScraperItem(Item):
     description = Field()
 
 
-class BiletiniAlScraper(Spider):
-    name = "BiletiniAlScraper"
+class BiletiniAl(Spider):
+    name = "BiletiniAl"
     allowed_domains = ["biletinial.com"]
     start_urls = ["https://www.biletinial.com/muzik",
                   "https://biletinial.com/egitim", "https://biletinial.com/tiyatro",
@@ -94,8 +94,8 @@ class BiletiniAlScraper(Spider):
             dates.append(dateString)
         return dates
 
-class CRRScraper(Spider):
-    name = "CRRScraper"
+class CemalResitRey(Spider):
+    name = "CemalResitRey"
     allowed_domains = ["crrkonsersalonu.ibb.istanbul"]
     start_date = time.strftime("%d.%m.%y")
     end_date = (datetime.datetime.now() + datetime.timedelta(100)
@@ -143,7 +143,7 @@ class CRRScraper(Spider):
 
 class BaskaSinema(Spider):
 
-    name = "BaskaSinemaScraper"
+    name = "BaskaSinema"
     allowed_domains = ["baskasinema.com"]
     start_urls = ["http://www.baskasinema.com/gelecek-filmler/", ]
 
