@@ -280,6 +280,42 @@ def add_event(name,city,location,date,e_type,ticket_url,image="",description="",
 def delete_event(e_id):
 	return delete("EVENT","ID ="+"CAST('"+ str(e_id)+"' AS INTEGER) ")
 
+@app.route('/api/filter_search/', defaults={'keywords':"None", 'city': "None", 'e_type': "None"},methods=['GET'])
+@app.route('/api/filter_search/<keywords>/<city>/<e_type>',methods=['GET'])
+def filter_search(keywords="None",city="None",e_type="None"):
+	query = []
+	others = ""
+	flag = 0
+	if keywords!="None":
+		flag = 1
+		others = "WHERE DESCRIPTION LIKE '%" + keywords +"%'"+" OR NAME LIKE '%" + keywords + "%'"
+	if city != "None":
+		if flag ==0:
+			others += "WHERE"
+		else:
+			others += "AND"
+		others += " CITY LIKE '"+ city +"%'"
+	if e_type != "None":
+		if flag ==0:
+			others += "WHERE"
+		else:
+			others += "AND"
+		others += " TYPE LIKE '"+ e_type +"%'"
+	result = select("*","EVENT", others)
+	if(type(result)!= type([1,1])):
+		return result
+	for row in result:
+		query.append({
+			"id": row[0],
+			"name": row[1],
+			"city": row[2],
+			"location": row[3],
+			"date": row[4],
+			"type": row[5],
+			"image": row[7]
+		})
+	return json.dumps(query ,sort_keys=True,indent=1,default=str)
+
 @app.route('/api/filterby_city/<city>',methods=['GET'])
 def filter_by_city(city):
 	query = []
@@ -333,6 +369,7 @@ def search_by_keyword(keyword):
 			"type": row[5],
 			"image": row[7]
 		})
+	print(query)
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 	
 ########################
@@ -474,7 +511,7 @@ def add_scrapped(myjson):
 def home_page():
 	query = []
 	for i in range(10):
-		query.append(i,{
+		query.append({
 			'key':i,
 			'value':i*24
 		})
