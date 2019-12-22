@@ -315,6 +315,7 @@ def filter_search(keywords="None",city="None",e_type="None"):
 		others += " TYPE LIKE '"+ e_type +"%'"
 	result = select("*","EVENT", others)
 	if(type(result)!= type([1,1])):
+		print("\n\nBULAMADIM:",result)
 		return result
 	for row in result:
 		query.append({
