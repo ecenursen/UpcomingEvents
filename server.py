@@ -449,9 +449,9 @@ def updated_event_review_approve(e_id):
 	event_review_reject(e_id)
 	return result
 
-@app.route('/api/event_reject/<int:e_id>',methods=['DELETE'])
+@app.route('/api/admin/event_reject/<int:e_id>',methods=['DELETE'])
 def event_review_reject(e_id):
-	result = delete("EVENT_REVIEW","ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	result = delete("EVENT_REVIEW"," ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	print(result)
 	return result
 	
