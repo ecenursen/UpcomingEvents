@@ -8,7 +8,7 @@ db.extensions.register_type(db.extensions.UNICODEARRAY)
 def select(columns, table, others=None):
     query = """SELECT {} FROM {}""".format(columns, table)
     if(others != None):
-         query += " " + others
+         query += " " + others + ";"
     #print("query:", query)
     return run(query)
 

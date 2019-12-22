@@ -157,14 +157,15 @@ def read_organizer_review():
 		})
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
-@app.route('/api/register_organizer/',methods=['POST'])
+@app.route('/api/register_organizer',methods=['POST'])
 def add_organizer_review():
 	name = request.args.get('name')
 	mail = request.args.get('mail')
 	address = request.args.get('address')
 	username = request.args.get('username')
 	password = request.args.get('password')
-	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
+	print("name:",name)
+	return insert("NAME,MAIL,ADDRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
 
 @app.route('/api/admin/organizer_approve/<org_id>',methods=['POST'])
 def organizer_review_approve(org_id):
