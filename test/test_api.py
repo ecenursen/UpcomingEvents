@@ -211,7 +211,7 @@ def test_api_username_verif():
     assert type(response)==type(sample_json),"Username Verify Function Fail"
     assert r.status_code==200, "Invalid Response"
 
-    username = " "
+    username = ""
     URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
     r = requests.get(url=URL)
     response = r.json()

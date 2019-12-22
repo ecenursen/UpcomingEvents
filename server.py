@@ -381,6 +381,7 @@ def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",descrip
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID,OLD_EVENT_ID","EVENT_REVIEW",values)
 	if result['result']== -1:
 		print("error:",result['message'])
+		return {'result':-1,'message':"Database error occured"}
 	print("HER TURLU RESULT add event review:",result)
 	return result
 
