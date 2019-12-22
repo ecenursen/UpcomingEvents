@@ -12,8 +12,10 @@ from twisted.internet import reactor
 from server import add_event
 trans_table = {ord(c): None for c in u'\r\n\t'}
 
-today = datetime.datetime.now() - datetime.timedelta(days = 0)
-months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+today = datetime.datetime.now() - datetime.timedelta(days=0)
+months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+          'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+
 
 class ScraperItem(Item):
     name = Field()
@@ -37,15 +39,9 @@ class BiletiniAl(Spider):
     def parse(self, response):
         events = Selector(response).xpath(
             '/html/body/div[1]/div/div[2]/div/div[2]/div/div[2]/div/div')
-
         for event in events:
-            '''
-            global eventCounter
-            print("Scraping:", eventCounter, "Biletinial")
-            eventCounter += 1
-            '''
             date = ' '.join(s.strip().translate(trans_table)
-                                    for s in event.xpath('a/ul/li/span/text()').extract())
+                            for s in event.xpath('a/ul/li/span/text()').extract())
             dates = self.parseDate(date)
             for date in dates:
                 item = ScraperItem()
@@ -54,7 +50,7 @@ class BiletiniAl(Spider):
                 item['date'] = date
                 item['url'] = "https://biletinial.com" + \
                     event.xpath('a/@href').extract()[0]
-                
+
                 item['location'] = event.xpath(
                     'a/div[@class="place"]/span/text()').extract()[0]
                 item['city'] = event.xpath(
@@ -63,36 +59,38 @@ class BiletiniAl(Spider):
                     'a/img[@class="moimag"]/@data-path').extract()[0]
                 item['type_'] = event.xpath(
                     'a/div[@class="category"]/text()').extract()[0]
-                
+
                 request = Request(
                     url=item['url'], callback=self.get_description, meta={'item': item})
                 yield request
-    
+
     def get_description(self, response):
         page = Selector(response)
         item = ScraperItem(response.meta["item"])
         item['description'] = ' '.join(s.strip().translate(
             trans_table) for s in page.xpath('//*[@id="movie-detail"]//p/text()').extract())
-        add_event(item['name'],item['city'],item['location'],item['date'],item['type_'],item['url'],item['image'],item['description'])
-    
+        add_event(item['name'], item['city'], item['location'], item['date'],
+                  item['type_'], item['url'], item['image'], item['description'])
+
     def parseDate(self, date):
-        dateStr = date.replace(" ","").split("-")  
+        dateStr = date.replace(" ", "").split("-")
 
         eventMonth = months.index(dateStr[0])+1
-        days = dateStr[1:]    
-        
+        days = dateStr[1:]
+
         dates = []
         currentMonth = datetime.datetime.today().month
         currentYear = datetime.datetime.today().year
         for day in days:
-            eventYear = currentYear+1 if eventMonth-currentMonth<0 else currentYear
+            eventYear = currentYear+1 if eventMonth-currentMonth < 0 else currentYear
             if(eventMonth < 10):
                 month = "0{}".format(eventMonth)
             else:
                 month = "{}".format(eventMonth)
-            dateString="{}-{}-{}".format(eventYear,month,day)
+            dateString = "{}-{}-{}".format(eventYear, month, day)
             dates.append(dateString)
         return dates
+
 
 class CemalResitRey(Spider):
     name = "CemalResitRey"
@@ -103,7 +101,7 @@ class CemalResitRey(Spider):
     end_date = end_date[-2:] + "." + end_date[5:-3] + "." + end_date[:4]
     start_urls = [
         "https://crrkonsersalonu.ibb.istanbul/Home/Events?CRRLang=tr-TR&startDate={}&endDate={}&dateRange=0&categoryId=0".format(start_date, end_date)]
-        
+
     def parse(self, response):
 
         events = Selector(response).xpath(
@@ -123,23 +121,24 @@ class CemalResitRey(Spider):
             item['location'] = 'Cemal Reşit Rey'
             item['city'] = 'İstanbul'
             item['description'] = ""
-            add_event(item['name'],item['city'],item['location'],item['date'],item['type_'],item['url'],item['image'],item['description'])
-            
+            add_event(item['name'], item['city'], item['location'], item['date'],
+                      item['type_'], item['url'], item['image'], item['description'])
 
-    def parseDate(self,date):
-        date=date.split(" ")
+    def parseDate(self, date):
+        date = date.split(" ")
         eventMonth = months.index(date[1])+1
         day = date[0]
-        
+
         currentMonth = datetime.datetime.today().month
         currentYear = datetime.datetime.today().year
-        eventYear = currentYear+1 if eventMonth-currentMonth<0 else currentYear
+        eventYear = currentYear+1 if eventMonth-currentMonth < 0 else currentYear
         if(eventMonth < 10):
             month = "0{}".format(eventMonth)
         else:
             month = "{}".format(eventMonth)
-        dateString="{}-{}-{}".format(eventYear,month,day)
+        dateString = "{}-{}-{}".format(eventYear, month, day)
         return dateString
+
 
 class BaskaSinema(Spider):
 
@@ -152,11 +151,6 @@ class BaskaSinema(Spider):
             '/html/body/div[2]/div[2]/div/div/div[2]/div[2]/div')
 
         for event in events:
-            '''
-            global eventCounter
-            print("Scraping:", eventCounter, "baskasinema")
-            eventCounter += 1
-            '''
             item = ScraperItem()
             date = event.xpath(
                 'div[@class="movie_info_box"]/div[@class="movie_info"]/strong/text()').extract()[0]
@@ -170,10 +164,11 @@ class BaskaSinema(Spider):
             item['city'] = ""
             item['description'] = ' '.join(s.strip().translate(trans_table)
                                            for s in event.xpath('div[@class="movie_info_box"]/div[@class="movie_info"]//text()').extract())
-            add_event(item['name'],item['city'],item['location'],item['date'],item['type_'],item['url'],item['image'],item['description'])
+            add_event(item['name'], item['city'], item['location'], item['date'],
+                      item['type_'], item['url'], item['image'], item['description'])
 
     def parseDate(self, date):
-        date=date.split(" ")
+        date = date.split(" ")
         eventMonth = months.index(date[1])+1
         if(eventMonth < 10):
             month = "0{}".format(eventMonth)
@@ -181,7 +176,7 @@ class BaskaSinema(Spider):
             month = "{}".format(eventMonth)
         day = date[0]
         eventYear = date[2]
-        dateString="{}-{}-{}".format(eventYear,month,day)
+        dateString = "{}-{}-{}".format(eventYear, month, day)
         return dateString
 
 
@@ -208,5 +203,4 @@ def loop_crawl():
 
 
 if __name__ == "__main__":
-    print("Scraper test begins...")
     loop_crawl()
