@@ -298,21 +298,21 @@ def filter_search(keywords="None",city="None",e_type="None"):
 	flag = 0
 	if keywords!="None":
 		flag = 1
-		others = "WHERE (DESCRIPTION LIKE '%" + keywords +"%'"+" OR NAME LIKE '%" + keywords + "%')"
+		others = "WHERE (LOWER(DESCRIPTION) LIKE LOWER('%" + keywords +"%')"+" OR LOWER(NAME) LIKE LOWER('%" + keywords + "%'))"
 	if city != "None":
 		if flag == 0:
 			flag = 1
 			others += "WHERE"
 		else:
 			others += " AND"
-		others += " CITY LIKE '"+ city +"%'"
+		others += " LOWER(CITY) LIKE LOWER('%"+ city +"%')"
 	if e_type != "None":
 		if flag ==0:
 			flag = 1
 			others += "WHERE"
 		else:
 			others += " AND"
-		others += " TYPE LIKE '"+ e_type +"%'"
+		others += " LOWER(TYPE) LIKE LOWER('%"+ e_type +"%')"
 	others += ";"
 	result = select("*","EVENT", others)
 	if(type(result)!= type([1,1])):
