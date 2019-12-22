@@ -379,6 +379,9 @@ def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",descrip
 	else:
 		values = "'" + name + "','" + city + "','" +location + "'," + "CAST('"+str(date)+"' AS DATE)" + ",'" +e_type + "','" + description + "','" +image + "','" +ticket_url +"',CAST('"+ str(org_id)+"' AS INTEGER) " + ",CAST('"+ str(old_evet_id)+"' AS INTEGER) "
 		result = insert("NAME,CITY,LOCATION,TIME,TYPE,DESCRIPTION,IMAGE,URL,ORGANIZER_ID,OLD_EVENT_ID","EVENT_REVIEW",values)
+	if result['result']== -1:
+		print("error:",result['message'])
+	print("HER TURLU RESULT add event review:",result)
 	return result
 
 @app.route('/api/add_new_event/<int:org_id>',methods=['POST'])
@@ -463,6 +466,8 @@ def event_review_reject(e_id):
 
 @app.route('/api/username_control/<username>',methods=['GET'])
 def username_verif(username):
+	if username =="":
+		return {"result":1, "message":"No username sent to api to check"}
 	result = select("*","ORGANIZER_LOGIN","WHERE USERNAME='"+username+"'")
 	if(type(result) == list):
 		result = {"result":-1,"message": "Username has already been in use"}
