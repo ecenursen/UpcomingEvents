@@ -52,10 +52,14 @@ def add_admin(username,password):
 	
 @app.route('/api/admin/login_verif',methods=['GET'])
 def is_admin():
-	username = request.form['username']
-	password = request.form['password']
+	username = request.args.get('username')
+	password = request.args.get('password')
+	print("in is admin username:",username,":password:",password)
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ADMIN",others)
+	print("IS ADMIN",result)
+	if(result == None):
+		result = {"result":-1,"message" :"ERROR OCCURED IN APP"}
 	if(type(result)==type([0,0])):
 		result = {"result":1,"message" :"Login verified"}
 	return result
@@ -122,8 +126,8 @@ def get_organizer_id_for_login(name,mail,address):
 
 @app.route('/api/organizer_login_verif',methods=['GET'])
 def organizer_verify():
-	username = request.form['username']
-	password = request.form['password']
+	username = request.args.get('username')
+	password = request.args.get('password')
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ORGANIZER_LOGIN",others)
 	if(type(result)==type([0,0])):
@@ -155,11 +159,11 @@ def read_organizer_review():
 
 @app.route('/api/register_organizer/',methods=['POST'])
 def add_organizer_review():
-	name = request.form['name']
-	mail = request.form['mail']
-	address = request.form['address']
-	username = request.form['username']
-	password = request.form['password']
+	name = request.args.get('name')
+	mail = request.args.get('mail')
+	address = request.args.get('address')
+	username = request.args.get('username')
+	password = request.args.get('password')
 	return insert("NAME,MAIL,ADRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
 
 @app.route('/api/admin/organizer_approve/<org_id>',methods=['POST'])
@@ -425,28 +429,28 @@ def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",descrip
 
 @app.route('/api/add_new_event/<int:org_id>',methods=['POST'])
 def new_event(org_id):
-	name = request.form['name']
-	city = request.form['city']
-	location = request.form['location']
-	date = request.form['date']
-	e_type = request.form['type']
-	description = request.form['description']
-	image = request.form['image']
-	ticket_url = request.form['ticket_url']
+	name = request.args.get('name')
+	city = request.args.get('city')
+	location = request.args.get('location')
+	date = request.args.get('date')
+	e_type = request.args.get('type')
+	description = request.args.get('description')
+	image = request.args.get('image')
+	ticket_url = request.args.get('ticket_url')
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url)
 
 @app.route('/api/event_update',methods=['POST'])
 def update_event():
 	old_evet_id = request.args.get('old_event_id')
 	org_id = request.args.get('org_id')
-	name = request.form['name']
-	city = request.form['city']
-	location = request.form['location']
-	date = request.form['date']
-	e_type = request.form['type']
-	description = request.form['description']
-	image = request.form['image']
-	ticket_url = request.form['ticket_url']
+	name = request.args.get('name')
+	city = request.args.get('city')
+	location = request.args.get('location')
+	date = request.args.get('date')
+	e_type = request.args.get('type')
+	description = request.args.get('description')
+	image = request.args.get('image')
+	ticket_url = request.args.get('ticket_url')
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_evet_id)
 
 @app.route('/api/admin/new_event_approve/<int:e_id>',methods=['POST'])
