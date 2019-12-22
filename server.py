@@ -397,7 +397,7 @@ def new_event(org_id,name=None,city=None,location=None,date=None,e_type=None, de
 @app.route('/api/event_update',methods=['POST'])
 def update_event(old_event_id=None,org_id=None,name=None,city=None,location=None,date=None,e_type=None, description=None,image=None,ticket_url=None):
 	if org_id==None and old_event_id==None and name==None and city==None and location==None and date==None and e_type==None and description==None and image==None and ticket_url==None:
-		old_evet_id = request.args.get('old_event_id')
+		old_event_id = request.args.get('old_event_id')
 		org_id = request.args.get('org_id')
 		name = request.args.get('name')
 		city = request.args.get('city')
@@ -407,7 +407,7 @@ def update_event(old_event_id=None,org_id=None,name=None,city=None,location=None
 		description = request.args.get('description')
 		image = request.args.get('image')
 		ticket_url = request.args.get('ticket_url')
-	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_evet_id)
+	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_event_id)
 
 @app.route('/api/admin/new_event_approve/<int:e_id>',methods=['POST'])
 def new_event_review_approve(e_id):
@@ -464,12 +464,12 @@ def event_review_reject(e_id):
 @app.route('/api/username_control/<username>',methods=['GET'])
 def username_verif(username):
 	result = select("*","ORGANIZER_LOGIN","WHERE USERNAME='"+username+"'")
-	if(type(result)== type([0,0])):
+	if(type(result) == list):
 		result = {"result":-1,"message": "Username has already been in use"}
 		return result
 	else:
 		result = select("*","ORGANIZER_REVIEW","WHERE USERNAME='"+username+"'")
-		if(type(result)== type([0,0])):
+		if(type(result) == list):
 			result = {"result":-1,"message": "Username has already been in use"}
 			return result
 		else:
