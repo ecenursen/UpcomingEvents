@@ -8,7 +8,7 @@ from db_cursor import select,insert,update,delete,search
 db.extensions.register_type(db.extensions.UNICODE)
 db.extensions.register_type(db.extensions.UNICODEARRAY)
 
-DEBUG = False
+DEBUG = True
 
 class return_query(dict):
 
@@ -51,9 +51,10 @@ def add_admin(username,password):
 	return result
 	
 @app.route('/api/admin/login_verif',methods=['GET'])
-def is_admin():
-	username = request.args.get('username')
-	password = request.args.get('password')
+def is_admin(username=None,password=None):
+	if(username == None and password == None):
+		username = request.args.get('username')
+		password = request.args.get('password')
 	print("in is admin username:",username,":password:",password)
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ADMIN",others)
@@ -100,7 +101,7 @@ def get_organizer_info(org_id):
 		})
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
-def add_organizer(name,mail=" ",address="empty"):
+def add_organizer(name,mail=" ",address=""):
 	duplicate = select("*","ORGANIZER","WHERE NAME='"+name+"' AND MAIL='" +mail+"' AND ADDRESS='"+ address + "'")
 	if(type(duplicate)==type([0,0])):
 		print("\n\nDUPLICATED ORGANIZER ALERT\n")
@@ -122,12 +123,15 @@ def get_organizer_id_for_login(name,mail,address):
 	others = "WHERE NAME=" + "CAST('"+str(name)+"' AS VARCHAR) " + "AND MAIL=" + "CAST('"+str(mail)+"' AS VARCHAR) " + "AND ADDRESS=" + "CAST('"+str(address)+"' AS VARCHAR) "
 	result = select("ID","ORGANIZER",others)
 	print("result in get org id:",result)
+	if type(result)==dict:
+		return result
 	return result[0][0]
 
 @app.route('/api/organizer_login_verif',methods=['GET'])
-def organizer_verify():
-	username = request.args.get('username')
-	password = request.args.get('password')
+def organizer_verify(username=None,password=None):
+	if username == None and password == None:
+		username = request.args.get('username')
+		password = request.args.get('password')
 	others = "WHERE USERNAME=" + "CAST('"+str(username)+"' AS VARCHAR) " + "AND PASSWORD=" + "CAST('"+str(password)+"' AS VARCHAR) "
 	result = select("*","ORGANIZER_LOGIN",others)
 	if(type(result)==type([0,0])):
@@ -158,13 +162,13 @@ def read_organizer_review():
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 
 @app.route('/api/register_organizer',methods=['POST'])
-def add_organizer_review():
-	name = request.args.get('name')
-	mail = request.args.get('mail')
-	address = request.args.get('address')
-	username = request.args.get('username')
-	password = request.args.get('password')
-	print("name:",name)
+def add_organizer_review(name=None,mail=None,address=None,username=None,password=None):
+	if name == None and mail==None and address==None and username==None and password==None:
+		name = request.args.get('name')
+		mail = request.args.get('mail')
+		address = request.args.get('address')
+		username = request.args.get('username')
+		password = request.args.get('password')
 	return insert("NAME,MAIL,ADDRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW","'"+name + "','" + mail + "','" + address + "','" + username + "','" + password+"'")
 
 @app.route('/api/admin/organizer_approve/<org_id>',methods=['POST'])
@@ -172,6 +176,8 @@ def organizer_review_approve(org_id):
 	others = "WHERE ID =" + "CAST('"+str(org_id)+"' AS INTEGER) "
 	result = select("NAME,MAIL,ADDRESS,USERNAME,PASSWORD","ORGANIZER_REVIEW",others)
 	print("result:",result)
+	if type(result) == dict:
+		return {"result":-1,"message":"No organizer review in database"}
 	name = result[0][0]
 	mail = result[0][1]
 	address = result[0][2]
@@ -180,7 +186,10 @@ def organizer_review_approve(org_id):
 	org_result = add_organizer(name,mail,address)
 	if(org_result['result'] != 1):
 		return org_result
-	f_result = add_organizer_login(get_organizer_id_for_login(name,mail,address),username,password)
+	organizer_id_forLogin = get_organizer_id_for_login(name,mail,address)
+	if type(organizer_id_forLogin) != int:
+		return {"result":-1,"message":"organizer id for login couldn't found"}
+	f_result = add_organizer_login(organizer_id_forLogin,username,password)
 	organizer_review_reject(org_id)
 	return f_result
 

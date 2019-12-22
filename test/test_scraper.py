@@ -5,7 +5,7 @@ import os.path
 import sys
 sys.path.append(os.path.join(os.path.dirname(
     os.path.realpath(__file__)), os.pardir))
-from scraperTest import CemalResitRey, BiletiniAl, BaskaSinema, ScraperItem, months, trans_table
+from scraper import CemalResitRey, BiletiniAl, BaskaSinema, ScraperItem, months, trans_table
 from scrapy.item import Field, Item
 from scrapy.selector import Selector
 sample_json = {"result": "OK", "message":"Sample"}
