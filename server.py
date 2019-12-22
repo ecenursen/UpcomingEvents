@@ -8,7 +8,7 @@ from db_cursor import select,insert,update,delete,search
 db.extensions.register_type(db.extensions.UNICODE)
 db.extensions.register_type(db.extensions.UNICODEARRAY)
 
-DEBUG = False
+DEBUG = True
 
 class return_query(dict):
 
@@ -343,62 +343,6 @@ def filter_search(keywords="None",city="None",e_type="None"):
 			"image": row[7]
 		})
 	return json.dumps(query ,sort_keys=True,indent=1,default=str)
-
-@app.route('/api/filterby_city/<city>',methods=['GET'])
-def filter_by_city(city):
-	query = []
-	result = select("*","EVENT","WHERE CITY= '"+ city +"'")
-	if(type(result)!= type([1,1])):
-		return result
-	for row in result:
-		query.append({
-			"id": row[0],
-			"name": row[1],
-			"city": row[2],
-			"location": row[3],
-			"date": row[4],
-			"type": row[5],
-			"image": row[7]
-		})
-	return json.dumps(query ,sort_keys=True,indent=1,default=str)
-
-@app.route('/api/filterby_type/<e_type>',methods=['GET'])
-def filter_by_type(e_type):
-	query = []
-	result = select("*","EVENT","WHERE TYPE= '"+ e_type +"'")
-	if(type(result)!= type([1,1])):
-		return result
-	for row in result:
-		query.append({
-			"id": row[0],
-			"name": row[1],
-			"city": row[2],
-			"location": row[3],
-			"date": row[4],
-			"type": row[5],
-			"image": row[7]
-		})
-	return json.dumps(query ,sort_keys=True,indent=1,default=str)
-
-@app.route('/api/search/<keyword>',methods=['GET'])
-def search_by_keyword(keyword):
-	query = []
-	result = search(keyword)
-	print("result:",result)
-	if(type(result)!= type([1,1])):
-		return result
-	for row in result:
-		query.append({
-			"id": row[0],
-			"name": row[1],
-			"city": row[2],
-			"location": row[3],
-			"date": row[4],
-			"type": row[5],
-			"image": row[7]
-		})
-	print(query)
-	return json.dumps(query ,sort_keys=True,indent=1,default=str)
 	
 ########################
 # 
@@ -438,29 +382,31 @@ def add_event_review(name,city,location,date,e_type,org_id,ticket_url="",descrip
 	return result
 
 @app.route('/api/add_new_event/<int:org_id>',methods=['POST'])
-def new_event(org_id):
-	name = request.args.get('name')
-	city = request.args.get('city')
-	location = request.args.get('location')
-	date = request.args.get('date')
-	e_type = request.args.get('type')
-	description = request.args.get('description')
-	image = request.args.get('image')
-	ticket_url = request.args.get('ticket_url')
+def new_event(org_id,name=None,city=None,location=None,date=None,e_type=None, description=None,image=None,ticket_url=None):
+	if name==None and city==None and location==None and date==None and e_type==None and description==None and image==None and ticket_url==None:
+		name = request.args.get('name')
+		city = request.args.get('city')
+		location = request.args.get('location')
+		date = request.args.get('date')
+		e_type = request.args.get('type')
+		description = request.args.get('description')
+		image = request.args.get('image')
+		ticket_url = request.args.get('ticket_url')
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url)
 
 @app.route('/api/event_update',methods=['POST'])
-def update_event():
-	old_evet_id = request.args.get('old_event_id')
-	org_id = request.args.get('org_id')
-	name = request.args.get('name')
-	city = request.args.get('city')
-	location = request.args.get('location')
-	date = request.args.get('date')
-	e_type = request.args.get('type')
-	description = request.args.get('description')
-	image = request.args.get('image')
-	ticket_url = request.args.get('ticket_url')
+def update_event(old_event_id=None,org_id=None,name=None,city=None,location=None,date=None,e_type=None, description=None,image=None,ticket_url=None):
+	if org_id==None and old_event_id==None and name==None and city==None and location==None and date==None and e_type==None and description==None and image==None and ticket_url==None:
+		old_evet_id = request.args.get('old_event_id')
+		org_id = request.args.get('org_id')
+		name = request.args.get('name')
+		city = request.args.get('city')
+		location = request.args.get('location')
+		date = request.args.get('date')
+		e_type = request.args.get('type')
+		description = request.args.get('description')
+		image = request.args.get('image')
+		ticket_url = request.args.get('ticket_url')
 	return add_event_review(name,city,location,date,e_type,org_id,description,image,ticket_url,old_evet_id)
 
 @app.route('/api/admin/new_event_approve/<int:e_id>',methods=['POST'])
@@ -503,6 +449,7 @@ def updated_event_review_approve(e_id):
 def event_review_reject(e_id):
 	result = delete("EVENT_REVIEW","ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
 	return result
+	
 ########################
 # 
 # USERNAME USAGE 
@@ -523,18 +470,6 @@ def username_verif(username):
 		else:
 			return {"result":1,"message":"Username can be used"}
 
-
-def add_scrapped(myjson):
-	print("__add scrapped called__")
-	print(myjson)
-	print("NAME:",myjson["name"])
-	print("DATE:",myjson["date"])
-	query = add_event(myjson["name"],myjson["city"],myjson["location"],myjson["date"],myjson["url"],myjson["description"],myjson["image"])
-	print("scrapped",query)
-	return 0
-
-
-
 @app.route("/")
 def home_page():
 	#queryXDV = add_organizer("xfbxdbxf","sfas@ryr.dgs","street lush NY")
@@ -551,8 +486,4 @@ if __name__ == "__main__":
 		app.run(debug='True')
 	else:
 		app.run()
-
-
-
-		#sdg
 
