@@ -467,7 +467,8 @@ def event_review_reject(e_id):
 
 @app.route('/api/username_control/<username>',methods=['GET'])
 def username_verif(username):
-	if username =="":
+	print("username:",username,":")
+	if username == "":
 		return {"result":1, "message":"No username sent to api to check"}
 	result = select("*","ORGANIZER_LOGIN","WHERE USERNAME='"+username+"'")
 	if(type(result) == list):
