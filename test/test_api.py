@@ -161,7 +161,7 @@ def test_api_read_event_review():
 
 def test_api_new_event():
     for org_id in range(10):
-        URL="https://ituse19-uep.herokuapp.com/api/admin/add_new_event/{}".format(org_id)
+        URL="https://ituse19-uep.herokuapp.com/api/add_new_event/{}".format(org_id)
         (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
         PARAMS = {'name':name,'city':city,"location":location,"date": date,"type":e_type,"description":description,"image":image,"ticket_url":ticket_url}
         r = requests.post(url=URL,params=PARAMS)
@@ -169,9 +169,61 @@ def test_api_new_event():
         assert type(response)==type(sample_json),"Add New Event to Review Function Fail"
         assert r.status_code==200, "Invalid Response"
 
+def test_api_update_event():
+    for old_event_id in range(100):
+        (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
+        URL="https://ituse19-uep.herokuapp.com/api/event_update"
+        PARAMS = {'name':name,'city':city,"location":location,"date": date,"type":e_type,"description":description,"image":image,"ticket_url":ticket_url,"org_id":1,"old_event_id":old_event_id}
+        r = requests.post(url=URL,params=PARAMS)
+        response = r.json()
+        assert type(response)==type(sample_json),"Add Updated Event to Review Function Fail"
+        assert r.status_code==200, "Invalid Response"
 
+def test_api_new_event_review_approve():
+    for e_id in range(100):
+        URL="https://ituse19-uep.herokuapp.com/api/admin/new_event_approve/{}".format(e_id)
+        r = requests.post(url=URL)
+        response = r.json()
+        assert type(response)==type(sample_json),"New Event Approve Function Fail"
+        assert r.status_code==200, "Invalid Response"
 
+def test_api_updated_event_review_approve():
+    for e_id in range(100):
+        URL="https://ituse19-uep.herokuapp.com/api/admin/updated_event_approve/{}".format(e_id)
+        r = requests.put(url=URL)
+        response = r.json()
+        assert type(response)==type(sample_json),"Updated Event Approve Function Fail"
+        assert r.status_code==200, "Invalid Response"
 
+def test_api_event_review_reject():
+    for e_id in range(100):
+        URL="https://ituse19-uep.herokuapp.com/api/admin/event_reject/{}".format(e_id)
+        r = requests.delete(url=URL)
+        response = r.json()
+        assert type(response)==type(sample_json),"Event from Review Rejected Function Fail"
+        assert r.status_code==200, "Invalid Response"
+
+def test_api_username_verif():
+    username = "org2"
+    URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
+    r = requests.get(url=URL)
+    response = r.json()
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
+    assert r.status_code==200, "Invalid Response"
+
+    username = ""
+    URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
+    r = requests.get(url=URL)
+    response = r.json()
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
+    assert r.status_code==200, "Invalid Response"
+
+    username = "organizerimben2"
+    URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
+    r = requests.get(url=URL)
+    response = r.json()
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
+    assert r.status_code==200, "Invalid Response"
 
 ################
 #
@@ -282,9 +334,39 @@ def test_cov_new_event():
     for org_id in range(10):
         (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
         response = new_event(org_id,name,city,location,date,e_type, description,image,ticket_url)
-        assert type(response)==type(sample_json),"Add Event Review Function Fail"
+        assert type(response)==type(sample_json),"Add New Event to Review Function Fail"
 
+def test_cov_update_event():
+    for old_event_id in range(100):
+        (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
+        response = update_event(old_event_id,1,name,city,location,date,e_type,description,image,ticket_url)
+        assert type(response)==type(sample_json),"Add Updated Event to Review Function Fail"
 
+def test_cov_new_event_review_approve():
+    for e_id in range(10):
+        response = new_event_review_approve(e_id)
+        assert type(response)==type(sample_json),"New Event Approved Function Fail"
 
+def test_cov_updated_event_review_approve():
+    for e_id in range(10):
+        response = updated_event_review_approve(e_id)
+        assert type(response)==type(sample_json),"Updated Event Approved Function Fail"
 
+def test_cov_event_review_reject():
+    for e_id in range(10):
+        response = event_review_reject(e_id)
+        assert type(response)==type(sample_json),"Event from Review Rejected Function Fail"
+
+def test_cov_username_verif():
+    username = "org2"
+    response = username_verif(username)
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
+    
+    username = ""
+    response = username_verif(username)
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
+    
+    username = "organizerimben2"
+    response = username_verif(username)
+    assert type(response)==type(sample_json),"Username Verify Function Fail"
     
