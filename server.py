@@ -304,14 +304,14 @@ def filter_search(keywords="None",city="None",e_type="None"):
 			flag = 1
 			others += "WHERE"
 		else:
-			others += "AND"
+			others += " AND"
 		others += " CITY LIKE '"+ city +"%'"
 	if e_type != "None":
 		if flag ==0:
 			flag = 1
 			others += "WHERE"
 		else:
-			others += "AND"
+			others += " AND"
 		others += " TYPE LIKE '"+ e_type +"%'"
 	result = select("*","EVENT", others)
 	if(type(result)!= type([1,1])):
