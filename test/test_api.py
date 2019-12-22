@@ -160,7 +160,7 @@ def test_api_read_event_review():
 
 
 def test_api_new_event():
-    for org_id in range(10):
+    for org_id in range(1,10):
         URL="https://ituse19-uep.herokuapp.com/api/add_new_event/{}".format(org_id)
         (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
         PARAMS = {'name':name,'city':city,"location":location,"date": date,"type":e_type,"description":description,"image":image,"ticket_url":ticket_url}
@@ -170,7 +170,7 @@ def test_api_new_event():
         assert r.status_code==200, "Invalid Response"
 
 def test_api_update_event():
-    for old_event_id in range(100):
+    for old_event_id in range(1,10):
         (name,city,location,date,e_type,description,image,ticket_url) = ("eventreview1","istanbul","location","2019-12-26","konser","bsnfbmsbf","jsebfjhb.jpeg","nsebfj.com")
         URL="https://ituse19-uep.herokuapp.com/api/event_update"
         PARAMS = {'name':name,'city':city,"location":location,"date": date,"type":e_type,"description":description,"image":image,"ticket_url":ticket_url,"org_id":1,"old_event_id":old_event_id}
@@ -211,7 +211,7 @@ def test_api_username_verif():
     assert type(response)==type(sample_json),"Username Verify Function Fail"
     assert r.status_code==200, "Invalid Response"
 
-    username = ""
+    username = " "
     URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
     r = requests.get(url=URL)
     response = r.json()
