@@ -8,7 +8,7 @@ from db_cursor import select,insert,update,delete,search
 db.extensions.register_type(db.extensions.UNICODE)
 db.extensions.register_type(db.extensions.UNICODEARRAY)
 
-DEBUG = True
+DEBUG = False
 
 class return_query(dict):
 
@@ -412,6 +412,8 @@ def update_event(old_event_id=None,org_id=None,name=None,city=None,location=None
 @app.route('/api/admin/new_event_approve/<int:e_id>',methods=['POST'])
 def new_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	if(type(result)==dict):
+		return {"result": -1, "message":"Cannot find event review in database"}
 	result = result[0]
 	name = result[1]
 	city = result[2]
@@ -429,6 +431,8 @@ def new_event_review_approve(e_id):
 @app.route('/api/admin/updated_event_approve/<int:e_id>',methods=['PUT'])
 def updated_event_review_approve(e_id):
 	result = select("*","EVENT_REVIEW","WHERE ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	if(type(result)==dict):
+		return {"result": -1, "message":"Cannot find event review in database"}
 	result = result[0]
 	name = result[1]
 	city = result[2]
@@ -448,6 +452,7 @@ def updated_event_review_approve(e_id):
 @app.route('/api/event_reject/<int:e_id>',methods=['DELETE'])
 def event_review_reject(e_id):
 	result = delete("EVENT_REVIEW","ID="+"CAST('"+str(e_id)+"' AS INTEGER) ")
+	print(result)
 	return result
 	
 ########################
