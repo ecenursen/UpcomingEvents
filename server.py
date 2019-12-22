@@ -298,7 +298,7 @@ def filter_search(keywords="None",city="None",e_type="None"):
 	flag = 0
 	if keywords!="None":
 		flag = 1
-		others = "WHERE DESCRIPTION LIKE '%" + keywords +"%'"+" OR NAME LIKE '%" + keywords + "%'"
+		others = "WHERE (DESCRIPTION LIKE '%" + keywords +"%'"+" OR NAME LIKE '%" + keywords + "%')"
 	if city != "None":
 		if flag == 0:
 			flag = 1
@@ -313,6 +313,7 @@ def filter_search(keywords="None",city="None",e_type="None"):
 		else:
 			others += " AND"
 		others += " TYPE LIKE '"+ e_type +"%'"
+	others += ";"
 	result = select("*","EVENT", others)
 	if(type(result)!= type([1,1])):
 		print("\n\nBULAMADIM:",result)
