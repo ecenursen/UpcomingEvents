@@ -180,7 +180,7 @@ def test_api_update_event():
         assert r.status_code==200, "Invalid Response"
 
 def test_api_new_event_review_approve():
-    for e_id in range(100):
+    for e_id in range(1,10):
         URL="https://ituse19-uep.herokuapp.com/api/admin/new_event_approve/{}".format(e_id)
         r = requests.post(url=URL)
         response = r.json()
@@ -188,7 +188,7 @@ def test_api_new_event_review_approve():
         assert r.status_code==200, "Invalid Response"
 
 def test_api_updated_event_review_approve():
-    for e_id in range(100):
+    for e_id in range(1,10):
         URL="https://ituse19-uep.herokuapp.com/api/admin/updated_event_approve/{}".format(e_id)
         r = requests.put(url=URL)
         response = r.json()
@@ -196,7 +196,7 @@ def test_api_updated_event_review_approve():
         assert r.status_code==200, "Invalid Response"
 
 def test_api_event_review_reject():
-    for e_id in range(100):
+    for e_id in range(10):
         URL="https://ituse19-uep.herokuapp.com/api/admin/event_reject/{}".format(e_id)
         r = requests.delete(url=URL)
         response = r.json()
@@ -211,7 +211,7 @@ def test_api_username_verif():
     assert type(response)==type(sample_json),"Username Verify Function Fail"
     assert r.status_code==200, "Invalid Response"
 
-    username = ""
+    username = " "
     URL="https://ituse19-uep.herokuapp.com/api/username_control/{}".format(username)
     r = requests.get(url=URL)
     response = r.json()
