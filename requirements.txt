@@ -1,5 +1,5 @@
 Flask>=1.0
 psycopg2-binary>=2.7
 gunicorn>=19.9
-scrapy==1.8.0
+scrapy==1.8.2
 scrapy_splash==0.7.2
